@@ -10,13 +10,13 @@ const routes = [
     redirect: "/home",
   },
   {
-    path: "/layout",
+    path: "/home",
     icon: "odometer",
     component: Layout,
     children: [
       {
         path: "/home",
-        name: "home",
+        name: "Home",
         icon: "odometer",
         meta: { title: "Home", requireAuth: false },
         component: () => import("@/views/home/Home.vue"),
