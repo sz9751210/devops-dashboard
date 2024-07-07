@@ -94,7 +94,7 @@
                 <el-breadcrumb separator="/">
                   <!-- 最外層工作台，寫死 -->
                   <el-breadcrumb-item :to="{ path: '/' }"
-                    >工作台</el-breadcrumb-item
+                    >Workbench</el-breadcrumb-item
                   >
                   <!-- 循環出路由規則中的父name和子name -->
                   <template
