@@ -24,29 +24,6 @@ const routes = [
     ],
   },
   {
-    path: "/devops",
-    name: "DevOps",
-    component: Layout,
-    icon: "aim",
-    meta: { title: "devops", requireAuth: true },
-    children: [
-      {
-        path: "/devops/roadmap",
-        name: "RoadMap",
-        icon: "reading",
-        meta: { title: "RoadMap", requireAuth: true },
-        component: () => import("@/views/devops/RoadMap.vue"),
-      },
-      {
-        path: "/devops/linklist",
-        name: "Link List",
-        icon: "list",
-        meta: { title: "Link List", requireAuth: true },
-        component: () => import("@/views/devops/LinkList.vue"),
-      },
-    ],
-  },
-  {
     path: "/event",
     component: Layout,
     icon: "list",
@@ -57,6 +34,19 @@ const routes = [
         icon: "list",
         meta: { title: "Event", requireAuth: true },
         component: () => import("@/views/event/index"),
+      },
+    ],
+  },
+  {
+    path: "/linklist",
+    component: Layout,
+    children: [
+      {
+        path: "/linklist",
+        name: "Link List",
+        icon: "link",
+        meta: { title: "Link List", requireAuth: true },
+        component: () => import("@/views/link-list/index"),
       },
     ],
   },
