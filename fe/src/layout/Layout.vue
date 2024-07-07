@@ -111,22 +111,8 @@
             <!-- 用戶訊息 -->
             <el-col :span="13">
               <div class="header-user">
-                <el-dropdown>
-                  <div class="header-dropdown">
-                    <!-- 用戶頭像和用戶名 -->
+                    <!-- 用戶頭像 -->
                     <el-image class="avator-image" :src="avator"></el-image>
-                    <span>{{ username }}</span>
-                  </div>
-                  <!-- 下拉選單 -->
-                  <template #dropdown>
-                    <el-dropdown-menu>
-                      <el-dropdown-item @click="changePassword"
-                        >修改密碼</el-dropdown-item
-                      >
-                      <el-dropdown-item @click="logout">登出</el-dropdown-item>
-                    </el-dropdown-menu>
-                  </template>
-                </el-dropdown>
               </div>
             </el-col>
           </el-row>
@@ -152,12 +138,6 @@ export default {
       routers: [],
     };
   },
-  computed: {
-    username() {
-      let username = localStorage.getItem("username");
-      return username ? username : "未知";
-    },
-  },
   methods: {
     onCollapse() {
       // 當前狀態是折疊的，點擊後展開
@@ -177,11 +157,6 @@ export default {
         this.isCollapse = true;
         this.showText = false;
       }
-    },
-    logout() {
-      localStorage.removeItem("username");
-      localStorage.removeItem("token");
-      this.$router.push("/login");
     },
   },
   beforeMount() {
@@ -291,26 +266,8 @@ export default {
   text-align: right;
   /* float: right; */
 }
-.header-dropdown {
-  line-height: 60px;
-  cursor: pointer;
-}
 /* main */
 .main {
   padding: 10px;
-}
-
-/* footer */
-.footer {
-  /* z-index:1200; */
-  text-align: center;
-  color: rgb(187, 184, 184);
-  line-height: 60px;
-  font-size: 14px;
-}
-.footer-icon {
-  width: 2em;
-  top: 3px;
-  font-size: 20px;
 }
 </style>
