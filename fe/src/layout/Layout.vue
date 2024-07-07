@@ -150,8 +150,8 @@ import { useRouter } from "vue-router";
 export default {
   data() {
     return {
-      logo: require("@/assets/k8s-metrics.png"),
-      avator: require("@/assets/avator.png"),
+      logo: require("@/assets/logo.png"),
+      avator: require("@/assets/avator.gif"),
       asideWidth: "220px",
       isCollapse: false,
       showText: true,
@@ -212,7 +212,7 @@ export default {
 .logo-image {
   width: 40px;
   height: 40px;
-  top: 12px;
+  top: 14px;
   padding-left: 12px;
 }
 .logo-name {
