@@ -3,19 +3,22 @@ version: '3.7'
 services:
   backend:
     build: ./be
-    container_name: be
+    container_name: backend
     ports:
       - "9090:9090"
     environment:
       FLASK_ENV: development
+      MONGO_URI: mongodb://mongo:27017/devops
     depends_on:
       - mongo
 
   frontend:
     build: ./fe
-    container_name: fe
+    container_name: frontend
     ports:
-      - "9528:9528"
+      - "7070:7070"
+    environment:
+      - NODE_ENV=development
     depends_on:
       - backend
 

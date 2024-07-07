@@ -1,12 +1,12 @@
 // src/api/event.js
 import httpClient from "@/utils/httpClient";
 
-const host = "http://localhost:9090/api/devops"; // 修改為分號
+const host = "/api/devops";
 
 export function fetchEvent() {
   return httpClient({
     url: `${host}/event`,
-    method: 'get'
+    method: "get",
   });
 }
 
@@ -14,22 +14,22 @@ export function fetchEvent() {
 export function createEvent(data) {
   return httpClient({
     url: `${host}/event`,
-    method: 'post',
-    data
+    method: "post",
+    data,
   });
 }
 
 export function updateEvent(id, data) {
   return httpClient({
     url: `${host}/event/${id}`,
-    method: 'put',
-    data
+    method: "put",
+    data,
   });
 }
 
 export function deleteEvent(id) {
   return httpClient({
     url: `${host}/event/${id}`,
-    method: 'delete'
+    method: "delete",
   });
 }
