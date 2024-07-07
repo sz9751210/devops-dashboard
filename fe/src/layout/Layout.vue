@@ -132,12 +132,6 @@
           </el-row>
         </el-header>
         <el-main class="main"><router-view></router-view></el-main>
-        <el-footer class="footer">
-          <!-- 圖標 -->
-          <el-icon class="footer-icon"><place /></el-icon>
-          <!-- 文字內容 -->
-          <a>2024 alan devops</a>
-        </el-footer>
         <el-backtop target=".main"></el-backtop>
       </el-container>
     </el-container>
