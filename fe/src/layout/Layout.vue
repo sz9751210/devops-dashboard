@@ -9,7 +9,7 @@
             <el-image class="logo-image" :src="logo" />
             <span :class="[isCollapse ? 'is-collapse' : '']">
               <transition name="fade" @after-enter="showText = true">
-                <span class="logo-name" v-if="showText">Kubernetes</span>
+                <span class="logo-name" v-if="showText">IT Dashboard</span>
               </transition>
             </span>
           </div>
@@ -154,7 +154,7 @@ export default {
       avator: require("@/assets/avator.png"),
       asideWidth: "220px",
       isCollapse: false,
-      showText: false,
+      showText: true,
       routers: [],
     };
   },
