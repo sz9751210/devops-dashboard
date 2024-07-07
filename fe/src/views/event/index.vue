@@ -57,6 +57,7 @@
             v-model="newEvent.date"
             type="date"
             placeholder="Pick a date"
+            value-format="YYYY-MM-DD"
           />
         </el-form-item>
         <el-form-item label="Desc">
@@ -174,6 +175,7 @@ export default {
       try {
         let response;
         const eventData = { ...this.newEvent };
+        eventData.date = eventData.date.split('T')[0]; // 只保留日期部分
         console.log("Event data:", eventData);
         if (this.editingEventId) {
           delete eventData._id;
