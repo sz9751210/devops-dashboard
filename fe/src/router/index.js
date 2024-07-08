@@ -7,21 +7,7 @@ import Layout from "@/layout/Layout.vue";
 const routes = [
   {
     path: "/",
-    redirect: "/home",
-  },
-  {
-    path: "/home",
-    icon: "odometer",
-    component: Layout,
-    children: [
-      {
-        path: "/home",
-        name: "Home",
-        icon: "odometer",
-        meta: { title: "Home", requireAuth: false },
-        component: () => import("@/views/home/Home.vue"),
-      },
-    ],
+    redirect: "/event",
   },
   {
     path: "/event",
@@ -34,19 +20,6 @@ const routes = [
         icon: "list",
         meta: { title: "Event", requireAuth: true },
         component: () => import("@/views/event/index"),
-      },
-    ],
-  },
-  {
-    path: "/linklist",
-    component: Layout,
-    children: [
-      {
-        path: "/linklist",
-        name: "Link List",
-        icon: "link",
-        meta: { title: "Link List", requireAuth: true },
-        component: () => import("@/views/link-list/index"),
       },
     ],
   },
