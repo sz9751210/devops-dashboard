@@ -4,6 +4,7 @@ module.exports = defineConfig({
     host: "0.0.0.0",
     port: 7070,
     open: true, // 啟動後自動打開頁面
+    allowedHosts: "all", // 允許所有來源
     proxy: {
       "/api": {
         target: "http://backend:9090",
