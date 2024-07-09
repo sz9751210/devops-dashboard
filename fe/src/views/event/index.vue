@@ -43,10 +43,13 @@
     </el-table>
 
     <!-- dialog for adding/editing event -->
+    <!-- close-on-click-modal：關閉對話框時不關閉父層，false表示防止點擊對話框時對話框消失 -->
     <el-dialog
       :title="editingEventId ? 'Edit' : 'Add'"
       v-model="showDialog"
+      close-on-click-modal="false"
       @close="handleDialogClose"
+      :before-close="beforeClose"
     >
       <el-form ref="eventForm" :model="newEvent" label-width="80px">
         <el-form-item label="Title">
@@ -113,7 +116,10 @@
     </el-dialog>
 
     <!-- dialog for viewing detail -->
-    <el-dialog title="Event Details" v-model="showDetailDialog">
+    <el-dialog
+      title="Event Details"
+      v-model="showDetailDialog"
+    >
       <el-form label-width="80px">
         <el-form-item label="Title">
           <span>{{ detailEvent.title }}</span>
@@ -135,18 +141,18 @@
         <el-form-item label="Images">
           <el-row :gutter="20">
             <!-- <div v-if="detailEvent.imageUrls && detailEvent.imageUrls.length"> -->
-              <el-col
-                v-for="(url, index) in detailEvent.imageUrls"
-                :key="index"
-                :span="6"
-              >
-                <el-image
-                  :src="url"
-                  :preview-src-list="detailEvent.imageUrls"
-                  class="avatar"
-                  fit="cover"
-                />
-              </el-col>
+            <el-col
+              v-for="(url, index) in detailEvent.imageUrls"
+              :key="index"
+              :span="6"
+            >
+              <el-image
+                :src="url"
+                :preview-src-list="detailEvent.imageUrls"
+                class="avatar"
+                fit="cover"
+              />
+            </el-col>
             <!-- </div> -->
           </el-row>
         </el-form-item>
@@ -165,7 +171,7 @@
 
 <script>
 import { fetchEvent, createEvent, updateEvent, deleteEvent } from "@/api/event"; // 調整路徑以符合你的專案結構
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 
 export default {
   data() {
@@ -300,6 +306,19 @@ export default {
     cancelDialog() {
       this.showDialog = false;
       this.$refs.eventForm.resetFields();
+    },
+    beforeClose(done) {
+      ElMessageBox.confirm("您有未保存的更改。是否確定要退出？", "確認", {
+        confirmButtonText: "確定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          done();
+        })
+        .catch(() => {
+          // 如果用戶取消，則什麼都不做
+        });
     },
     // 上傳圖片
     handleUploadSuccess(response, file, fileList) {
