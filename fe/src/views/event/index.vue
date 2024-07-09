@@ -79,10 +79,28 @@
             style="width: 100%"
           />
         </el-form-item>
+        <el-form-item label="Image">
+          <el-upload
+            action="#"
+            list-type="picture-card"
+            :on-preview="handlePictureCardPreview"
+            :on-remove="handleRemove"
+            :on-change="handleImageChange"
+            :file-list="fileList"
+            :auto-upload="false"
+            multiple
+          >
+            <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
+          </el-upload>
+
+          <el-dialog v-model="dialogVisible">
+            <img width="100%" :src="dialogImageUrl" alt="preview image" />
+          </el-dialog>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="submitEvent">提交</el-button>
           <el-popconfirm
-            title="确定取消？"
+            title="確定取消？"
             @confirm="cancelDialog"
             @cancel="popoverCancelVisible = false"
           >
@@ -112,10 +130,35 @@
         <el-form-item label="Answer">
           <span class="pre-wrap">{{ detailEvent.answer }}</span>
         </el-form-item>
+
+        <!-- preview-src-list：支持點擊預覽 -->
+        <el-form-item label="Images">
+          <el-row :gutter="20">
+            <!-- <div v-if="detailEvent.imageUrls && detailEvent.imageUrls.length"> -->
+              <el-col
+                v-for="(url, index) in detailEvent.imageUrls"
+                :key="index"
+                :span="6"
+              >
+                <el-image
+                  :src="url"
+                  :preview-src-list="detailEvent.imageUrls"
+                  class="avatar"
+                  fit="cover"
+                />
+              </el-col>
+            <!-- </div> -->
+          </el-row>
+        </el-form-item>
+
         <el-form-item>
           <el-button @click="showDetailDialog = false">Close</el-button>
         </el-form-item>
       </el-form>
+    </el-dialog>
+
+    <el-dialog v-model="dialogVisible">
+      <img width="100%" :src="dialogImageUrl" alt="preview image" />
     </el-dialog>
   </div>
 </template>
@@ -130,12 +173,16 @@ export default {
       Event: [],
       showDialog: false,
       showDetailDialog: false,
+      dialogImageUrl: "",
+      dialogVisible: false,
+      fileList: [],
       newEvent: {
         title: "",
         date: "",
         description: "",
         question: "",
         answer: "",
+        imageUrls: [],
       },
       detailEvent: {
         title: "",
@@ -143,6 +190,7 @@ export default {
         description: "",
         question: "",
         answer: "",
+        imageUrls: [],
       },
       editingEventId: null,
       deleteEventId: null,
@@ -168,14 +216,16 @@ export default {
         question: "",
         answer: "",
         description: "",
+        imageUrls: [],
       };
+      this.fileList = [];
       this.showDialog = true;
     },
     async submitEvent() {
       try {
         let response;
         const eventData = { ...this.newEvent };
-        eventData.date = eventData.date.split('T')[0]; // 只保留日期部分
+        eventData.date = eventData.date.split("T")[0]; // 只保留日期部分
         console.log("Event data:", eventData);
         if (this.editingEventId) {
           delete eventData._id;
@@ -251,9 +301,41 @@ export default {
       this.showDialog = false;
       this.$refs.eventForm.resetFields();
     },
+    // 上傳圖片
+    handleUploadSuccess(response, file, fileList) {
+      const url = URL.createObjectURL(file.raw);
+      file.url = url; // 添加这行
+      this.newEvent.imageUrls.push(url);
+      this.fileList = fileList;
+    },
+    handlePictureCardPreview(file) {
+      this.dialogImageUrl = file.url;
+      this.dialogVisible = true;
+    },
+    handleRemove(file, fileList) {
+      const url = file.url;
+      const index = this.newEvent.imageUrls.indexOf(url);
+      if (index !== -1) {
+        this.newEvent.imageUrls.splice(index, 1);
+      }
+      this.fileList = fileList;
+    },
+    handleImageChange(file, fileList) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file.raw);
+      reader.onload = () => {
+        file.url = reader.result;
+        if (!this.newEvent.imageUrls) {
+          this.newEvent.imageUrls = [];
+        }
+        this.newEvent.imageUrls.push(file.url);
+        this.fileList = fileList;
+      };
+    },
   },
 };
 </script>
+
 <style scoped>
 .header {
   display: flex;
@@ -265,5 +347,31 @@ export default {
 }
 .action-button {
   margin-right: 5px;
+}
+.avatar {
+  width: 100%;
+  height: 100%;
+  /* display: block; */
+  cursor: pointer;
+}
+.avatar-uploader .el-upload {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+
+.avatar-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
+}
+
+.el-icon.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  text-align: center;
 }
 </style>
