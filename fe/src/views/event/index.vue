@@ -10,9 +10,9 @@
     <!-- table -->
     <el-table :data="Event" style="width: 100%">
       <el-table-column prop="title" label="Title" width="230" />
-      <el-table-column prop="date" label="Date" width="230" sortable />
-      <el-table-column prop="author" label="Author" width="230" sortable />
-      <el-table-column prop="description" label="Description" width="300" />
+      <el-table-column prop="date" label="Date" width="180" sortable />
+      <el-table-column prop="author" label="Author" width="180" sortable />
+      <el-table-column prop="description" label="Description" width="200" />
       <el-table-column label="Operations" width="300">
         <template v-slot="scope">
           <el-button
@@ -65,7 +65,9 @@
           />
         </el-form-item>
         <el-form-item label="Author">
-          <el-input v-model="newEvent.author" />
+          <el-select v-model="newEvent.author" placeholder="Select author">
+            <el-option v-for="author in authors" :key="author" :label="author" :value="author" />
+          </el-select>
         </el-form-item>
         <el-form-item label="Desc">
           <el-input v-model="newEvent.description" />
@@ -189,6 +191,7 @@ export default {
       dialogImageUrl: "",
       dialogVisible: false,
       fileList: [],
+      authors: ["Author1", "Author2", "Author3"],
       newEvent: {
         title: "",
         date: "",
