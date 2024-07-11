@@ -11,7 +11,8 @@
     <el-table :data="Event" style="width: 100%">
       <el-table-column prop="title" label="Title" width="230" />
       <el-table-column prop="date" label="Date" width="230" sortable />
-      <el-table-column prop="description" label="Desc" width="300" />
+      <el-table-column prop="author" label="Author" width="230" sortable />
+      <el-table-column prop="description" label="Description" width="300" />
       <el-table-column label="Operations" width="300">
         <template v-slot="scope">
           <el-button
@@ -62,6 +63,9 @@
             placeholder="Pick a date"
             value-format="YYYY-MM-DD"
           />
+        </el-form-item>
+        <el-form-item label="Author">
+          <el-input v-model="newEvent.author" />
         </el-form-item>
         <el-form-item label="Desc">
           <el-input v-model="newEvent.description" />
@@ -127,7 +131,10 @@
         <el-form-item label="Date">
           <span>{{ detailEvent.date }}</span>
         </el-form-item>
-        <el-form-item label="Desc">
+        <el-form-item label="Author">
+          <span>{{ detailEvent.author }}</span>
+        </el-form-item>
+        <el-form-item label="Description">
           <span>{{ detailEvent.description }}</span>
         </el-form-item>
         <el-form-item label="Question">
@@ -185,6 +192,7 @@ export default {
       newEvent: {
         title: "",
         date: "",
+        author: "",
         description: "",
         question: "",
         answer: "",
@@ -193,6 +201,7 @@ export default {
       detailEvent: {
         title: "",
         date: "",
+        author: "",
         description: "",
         question: "",
         answer: "",
@@ -219,6 +228,7 @@ export default {
       this.newEvent = {
         title: "",
         date: "",
+        author: "",
         question: "",
         answer: "",
         description: "",
