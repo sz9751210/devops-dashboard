@@ -10,7 +10,7 @@
     <!-- table -->
     <el-table :data="Event" style="width: 100%">
       <el-table-column prop="title" label="Title" width="230" />
-      <el-table-column prop="date" label="Date" width="230" />
+      <el-table-column prop="date" label="Date" width="230" sortable />
       <el-table-column prop="description" label="Desc" width="300" />
       <el-table-column label="Operations" width="300">
         <template v-slot="scope">
