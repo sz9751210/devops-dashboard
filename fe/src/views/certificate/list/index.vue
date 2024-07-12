@@ -23,7 +23,18 @@
         width="150"
         sortable
       />
-      <el-table-column prop="check" label="狀態" width="100" />
+      <el-table-column prop="status" label="狀態" width="100">
+        <template v-slot="scope">
+          <el-switch
+            v-model="scope.row.status"
+            :active-value="true"
+            :inactive-value="false"
+            active-color="#13ce66"
+            inactive-color="#dcdfe6"
+            @change="handleStatusChange(scope.row)"
+          ></el-switch>
+        </template>
+      </el-table-column>
       <el-table-column prop="days_left" label="剩餘天數" width="150" sortable>
         <template v-slot="scope">
           <span :class="getDaysLeftClass(scope.row.days_left)">
@@ -46,7 +57,8 @@
 </template>
 
 <script>
-import { fetchDomain } from "@/api/certificate";
+import { fetchDomain, updateDomainStatus } from "@/api/certificate";
+import { ElMessage } from "element-plus";
 
 export default {
   data() {
@@ -95,7 +107,7 @@ export default {
               subdomain: subdomain.name,
               expiry_date: subdomain.expiry_date || "N/A",
               update_time: subdomain.update_time || "N/A",
-              check: subdomain.check,
+              status: subdomain.status,
               days_left: 0,
             });
           });
@@ -154,6 +166,26 @@ export default {
       const start = (this.currentPage - 1) * this.pageSize;
       const end = start + this.pageSize;
       this.pagedData = sortedData.slice(start, end);
+    },
+    async handleStatusChange(row) {
+      try {
+        const data = {
+          domain: row.domain,
+          subdomain: row.subdomain,
+          status: row.status,
+        };
+        await updateDomainStatus(data);
+        ElMessage({
+          message: row.status ? "域名狀態啟用成功" : "域名狀態關閉成功",
+          type: "success",
+        });
+      } catch (error) {
+        console.log("Error updating domain status:", error);
+        ElMessage({
+          message: "域名狀態更新失敗",
+          type: "error",
+        });
+      }
     },
   },
 };

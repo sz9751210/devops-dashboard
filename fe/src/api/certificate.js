@@ -13,6 +13,14 @@ export function fetchCertificate(domain) {
   return httpClient({
     url: `${host}/certificate/check`,
     method: "get",
-    params: { domain }
+    params: { domain },
+  });
+}
+
+export function updateDomainStatus(data) {
+  return httpClient({
+    url: `${host}/certificate/domain-status`,
+    method: "put",
+    data,
   });
 }

@@ -21,7 +21,7 @@ class CertificateController:
             for subdomain in domain["subdomains"]:
                 domain_info["subdomains"].append({
                     "name": subdomain.get("name"),
-                    "check": subdomain.get("check"),
+                    "status": subdomain.get("status"),
                     "expiry_date": subdomain.get("expiry_date").isoformat() if subdomain.get("expiry_date") else None,
                     "update_time": subdomain.get("update_time").isoformat() if subdomain.get("update_time") else None
                 })
@@ -30,9 +30,24 @@ class CertificateController:
 
     def get_certificate(self):
         domain = request.args.get('domain')
-        print(domain)
         if not domain:
             return jsonify({"code": 400, "message": "請提供域名"}), 400
         cert = self.certificate_service.get_ssl_cert_info(domain)
         cert_info = self.certificate_service.parse_ssl_cert_info(domain, cert)
         return jsonify({"code": 200, "message": "success", "data": cert_info})
+
+    def update_domain_status(self):
+        data = request.get_json()
+        domain = data.get('domain')
+        subdomain = data.get('subdomain')
+        status = data.get('status')
+
+        if not domain or not subdomain or status is None:
+            return jsonify({"code": 400, "message": "請提供完整的數據"}), 400
+
+        success = self.certificate_service.update_domain_status(domain, subdomain, status)
+
+        if success:
+            return jsonify({"code": 200, "message": "域名狀態更新成功"})
+        else:
+            return jsonify({"code": 500, "message": "域名狀態更新失敗"}), 500

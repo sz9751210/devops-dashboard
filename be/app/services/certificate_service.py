@@ -12,7 +12,8 @@ class CertificateService:
     def get_domain_list(self):
         domains = list(self.collection.find({}))
         for domain in domains:
-            print(domain)
+            for subdomain in domain.get('subdomains', []):
+                subdomain['status'] = bool(subdomain['status'])
         return domains
 
     def get_ssl_cert_info(self, domain, retries=5, delay=4, timeout=5.0):
@@ -56,3 +57,10 @@ class CertificateService:
             "validFrom": valid_from,
             "validUntil": valid_until
         }
+
+    def update_domain_status(self, domain, subdomain, status):
+        result = self.collection.update_one(
+            {"domain": domain, "subdomains.name": subdomain},
+            {"$set": {"subdomains.$.status": status}}
+        )
+        return result.modified_count > 0
