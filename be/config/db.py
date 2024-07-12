@@ -1,8 +1,7 @@
 import os
 from pymongo import MongoClient
 
-def get_db():
-    mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/devops")
+def get_client():
+    mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
     client = MongoClient(mongo_uri)
-    db = client.get_database()
-    return db
+    return client

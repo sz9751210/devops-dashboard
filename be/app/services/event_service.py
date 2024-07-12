@@ -1,8 +1,8 @@
 from bson.objectid import ObjectId
 
-
 class EventService:
-    def __init__(self, db):
+    def __init__(self, client):
+        db = client['it']
         self.collection = db['event']
 
     def get_event_list(self):

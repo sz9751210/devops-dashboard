@@ -1,9 +1,9 @@
 from app.controllers.link_list_controller import LinkListController
 from app.controllers.event_controller import EventController
 
-def setup_routes(app, db):
-    link_list_controller = LinkListController(db)
-    event_controller = EventController(db)
+def setup_routes(app, client):
+    link_list_controller = LinkListController(client)
+    event_controller = EventController(client)
     
     api_prefix= '/api'
     
