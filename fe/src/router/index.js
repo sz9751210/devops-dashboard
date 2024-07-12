@@ -39,14 +39,23 @@ const routes = [
   },
   {
     path: "/certificate",
+    name: "Certificates Manage",
+    icon: "Collection",
     component: Layout,
     children: [
       {
-        path: "/certificate",
-        name: "Certificates",
+        path: "/certificate/list",
+        name: "Certificates List",
         icon: "Tickets",
         meta: { title: "Certificates", requireAuth: true },
-        component: () => import("@/views/certificate/index"),
+        component: () => import("@/views/certificate/list/index"),
+      },
+      {
+        path: "/certificate/check",
+        name: "Certificate Check",
+        icon: "CircleCheck",
+        meta: { title: "Certificates", requireAuth: true },
+        component: () => import("@/views/certificate/check/index"),
       },
     ],
   },
