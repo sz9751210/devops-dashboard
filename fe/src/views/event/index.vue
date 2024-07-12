@@ -5,6 +5,11 @@
       <el-button type="primary" icon="plus" @click="openDialog"
         >新增事件</el-button
       >
+      <el-switch
+        v-model="showOperations"
+        active-text="God Mode"
+        inactive-text="Read Only"
+      />
     </div>
 
     <!-- table -->
@@ -19,6 +24,7 @@
             class="action-button"
             size="mini"
             type="primary"
+            v-if="showOperations"
             @click="editEvent(scope.row)"
             >Edit</el-button
           >
@@ -28,7 +34,11 @@
             @cancel="cancelDelete"
           >
             <template #reference>
-              <el-button class="action-button" size="mini" type="danger"
+              <el-button
+                class="action-button"
+                size="mini"
+                type="danger"
+                v-if="showOperations"
                 >Delete</el-button
               >
             </template>
@@ -66,7 +76,12 @@
         </el-form-item>
         <el-form-item label="Author">
           <el-select v-model="newEvent.author" placeholder="Select author">
-            <el-option v-for="author in authors" :key="author" :label="author" :value="author" />
+            <el-option
+              v-for="author in authors"
+              :key="author"
+              :label="author"
+              :value="author"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="Desc">
@@ -122,10 +137,7 @@
     </el-dialog>
 
     <!-- dialog for viewing detail -->
-    <el-dialog
-      title="Event Details"
-      v-model="showDetailDialog"
-    >
+    <el-dialog title="Event Details" v-model="showDetailDialog">
       <el-form label-width="80px">
         <el-form-item label="Title">
           <span>{{ detailEvent.title }}</span>
@@ -212,6 +224,7 @@ export default {
       },
       editingEventId: null,
       deleteEventId: null,
+      showOperations: true,
     };
   },
   created() {
@@ -272,9 +285,14 @@ export default {
       }
     },
     editEvent(event) {
-      this.newEvent = { ...event };
-      this.editingEventId = event._id;
-      this.showDialog = true;
+      if (event) {
+        this.newEvent = { ...event, imageUrls: event.imageUrls || [] };
+        this.fileList = this.newEvent.imageUrls.map((url, index) => ({ name: `Image ${index + 1}`, url }));
+        this.editingEventId = event._id;
+        this.showDialog = true;
+      } else {
+        console.error("Event is undefined");
+      }
     },
     async deleteEvent(eventId) {
       try {
@@ -371,7 +389,7 @@ export default {
 <style scoped>
 .header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-bottom: 20px;
 }
 .pre-wrap {
