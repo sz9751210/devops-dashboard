@@ -38,6 +38,19 @@ const routes = [
     ],
   },
   {
+    path: "/certificate",
+    component: Layout,
+    children: [
+      {
+        path: "/certificate",
+        name: "Certificates",
+        icon: "Tickets",
+        meta: { title: "Certificates", requireAuth: true },
+        component: () => import("@/views/certificate/index"),
+      },
+    ],
+  },
+  {
     path: "/linklist",
     component: Layout,
     children: [
