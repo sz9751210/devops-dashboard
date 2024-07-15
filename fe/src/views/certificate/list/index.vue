@@ -1,7 +1,36 @@
 <template>
   <div>
     <!-- header -->
-    <div class="header"></div>
+    <div class="header">
+      <div class="inputs">
+        <el-input
+          v-model="searchDomain"
+          placeholder="輸入域名"
+          clearable
+          class="search-input"
+          @keyup.enter="handleSearch"
+        ></el-input>
+        <el-input
+          v-model.number="maxDaysLeft"
+          placeholder="最多剩餘天數"
+          type="number"
+          clearable
+          class="days-input"
+          @keyup.enter="handleSearch"
+        ></el-input>
+        <el-select
+          v-model="searchStatus"
+          placeholder="選擇狀態"
+          clearable
+          class="status-select"
+          @keyup.enter="handleSearch"
+        >
+          <el-option label="開啟" :value="true"></el-option>
+          <el-option label="關閉" :value="false"></el-option>
+        </el-select>
+      </div>
+      <el-button type="primary" @click="handleSearch">搜尋</el-button>
+    </div>
 
     <!-- table -->
     <el-table
@@ -70,6 +99,9 @@ export default {
       totalSubdomains: 0,
       sortColumn: "",
       sortOrder: "",
+      searchDomain: "",
+      maxDaysLeft: null,
+      searchStatus: null,
     };
   },
   created() {
@@ -149,10 +181,34 @@ export default {
       this.sortAndPageData();
     },
     sortAndPageData() {
-      let sortedData = [...this.domainData];
+      // let sortedData = [...this.domainData];
+
+      let filteredData = this.domainData;
+
+      if (this.searchDomain) {
+        filteredData = filteredData.filter((item) =>
+          item.domain.includes(this.searchDomain)
+        );
+      }
+
+      if (this.maxDaysLeft !== null) {
+        filteredData = filteredData.filter(
+          (item) =>
+            item.days_left !== "N/A" && item.days_left <= this.maxDaysLeft
+        );
+      }
+
+      if (this.searchStatus !== null) {
+        filteredData = filteredData.filter(
+          (item) => item.status === this.searchStatus
+        );
+      }
+
+      // 確保過濾掉 days_left 是 "N/A" 的域名
+      filteredData = filteredData.filter((item) => item.days_left !== "N/A");
 
       if (this.sortColumn) {
-        sortedData.sort((a, b) => {
+        filteredData.sort((a, b) => {
           let result = 0;
           if (a[this.sortColumn] < b[this.sortColumn]) {
             result = -1;
@@ -163,9 +219,12 @@ export default {
         });
       }
 
+      // 更新 totalSubdomains
+      this.totalSubdomains = filteredData.length;
+
       const start = (this.currentPage - 1) * this.pageSize;
       const end = start + this.pageSize;
-      this.pagedData = sortedData.slice(start, end);
+      this.pagedData = filteredData.slice(start, end);
     },
     async handleStatusChange(row) {
       try {
@@ -187,6 +246,23 @@ export default {
         });
       }
     },
+    handleSearch() {
+      if (
+        !this.searchDomain &&
+        this.maxDaysLeft === null &&
+        this.searchStatus === null
+      ) {
+        this.currentPage = 1;
+        this.totalSubdomains = this.domainData.filter(
+          (item) => item.days_left !== "N/A"
+        ).length;
+        this.pagedData = this.domainData
+          .filter((item) => item.days_left !== "N/A")
+          .slice(0, this.pageSize);
+      } else {
+        this.sortAndPageData();
+      }
+    },
   },
 };
 </script>
@@ -194,8 +270,17 @@ export default {
 <style scoped>
 .header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-bottom: 20px;
+}
+.inputs {
+  display: flex;
+}
+.search-input,
+.days-input,
+.status-select {
+  margin-right: 5px;
+  width: 180px;
 }
 .red-text {
   color: red;
