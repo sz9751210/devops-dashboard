@@ -68,7 +68,7 @@
                   <el-icon>
                     <component :is="child.icon" />
                   </el-icon>
-                {{ child.name }}
+                  {{ child.name }}
                 </template>
               </el-menu-item>
             </el-sub-menu>
@@ -111,8 +111,19 @@
             <!-- 用戶訊息 -->
             <el-col :span="13">
               <div class="header-user">
-                    <!-- 用戶頭像 -->
+                <el-dropdown>
+                  <div class="header-dropdown">
+                    <!-- 用戶頭像和用戶名 -->
                     <el-image class="avator-image" :src="avator"></el-image>
+                    <!-- <span>{{ username }}</span> -->
+                  </div>
+                  <!-- 下拉選單 -->
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item @click="logout">登出</el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
               </div>
             </el-col>
           </el-row>
@@ -157,6 +168,10 @@ export default {
         this.isCollapse = true;
         this.showText = false;
       }
+    },
+    logout() {
+      localStorage.removeItem("token");
+      this.$router.push({ name: "Login" });
     },
   },
   beforeMount() {
@@ -260,6 +275,9 @@ export default {
   height: 40px;
   border-radius: 50%;
   margin-right: 8px;
+  cursor: pointer; /* 確保指針變為手型 */
+  border: none;
+  box-shadow: none;
 }
 /* header */
 .header-user {

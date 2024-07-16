@@ -8,7 +8,9 @@ services:
       - "9090:9090"
     environment:
       FLASK_ENV: development
-      MONGO_URI: mongodb://mongo:27017/devops
+      MONGO_URI: mongodb://mongo:27017/
+      SECRET_KEY: secret
+      # MONGO_URI: mongodb://localhost:27017/
     depends_on:
       - mongo
 

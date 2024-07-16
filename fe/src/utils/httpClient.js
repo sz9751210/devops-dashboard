@@ -36,7 +36,7 @@ httpClient.interceptors.request.use(
 
 httpClient.interceptors.response.use(
   (response) => {
-    if (response.status !== 200) {
+    if (response.status !== 200 && response.status !== 201) {
       ElMessage.error(response.data.message || "Error");
       return Promise.reject(response.data);
     }

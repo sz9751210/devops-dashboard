@@ -1,11 +1,13 @@
 from app.controllers.link_list_controller import LinkListController
 from app.controllers.event_controller import EventController
 from app.controllers.certificate_controller import CertificateController
+from app.controllers.auth_controller import AuthController
 
 def setup_routes(app, client):
     link_list_controller = LinkListController(client)
     event_controller = EventController(client)
     certificate_controller = CertificateController(client)
+    auth_controller = AuthController(client)
     
     api_prefix= '/api/devops'
     
@@ -17,3 +19,8 @@ def setup_routes(app, client):
     app.add_url_rule(f"{api_prefix}/certificate/domains", view_func=certificate_controller.get_domains, methods=['GET'])
     app.add_url_rule(f"{api_prefix}/certificate/check", view_func=certificate_controller.get_certificate, methods=['GET'])
     app.add_url_rule(f"{api_prefix}/certificate/domain-status", view_func=certificate_controller.update_domain_status, methods=['PUT'])
+
+    # auth
+    app.add_url_rule(f"{api_prefix}/auth/register", view_func=auth_controller.register, methods=['POST'])
+    app.add_url_rule(f"{api_prefix}/auth/login", view_func=auth_controller.login, methods=['POST'])
+    

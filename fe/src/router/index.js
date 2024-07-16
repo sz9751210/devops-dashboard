@@ -4,6 +4,7 @@ import NProgress from "nprogress";
 import "nprogress/nprogress.css";
 import Layout from "@/layout/Layout.vue";
 
+
 const routes = [
   {
     path: "/",
@@ -18,7 +19,7 @@ const routes = [
         path: "/home",
         name: "Home",
         icon: "odometer",
-        meta: { title: "Home", requireAuth: false },
+        meta: { title: "Home", requireAuth: true },
         component: () => import("@/views/home/Home.vue"),
       },
     ],
@@ -73,6 +74,18 @@ const routes = [
     ],
   },
   {
+    path: "/login",
+    name: "Login",
+    meta: { title: "Login", requireAuth: false },
+    component: () => import("@/views/auth/login/index"),
+  },
+  {
+    path: "/register",
+    name: "Register",
+    meta: { title: "Register", requireAuth: false },
+    component: () => import("@/views/auth/register/index"),
+  },
+  {
     path: "/404",
     name: "404",
     meta: { title: "Page Not Found", requireAuth: false },
@@ -101,10 +114,22 @@ router.beforeEach((to, from, next) => {
   if (to.meta.title) {
     document.title = to.meta.title;
   } else {
-    document.title = "Kubernetes";
+    document.title = "Devops Dashboard";
   }
-  // 放行
-  next();
+
+  const token = localStorage.getItem("token");
+
+  // 使用 Array.prototype.some(), 遍歷所有record, 只要有一個record.meta.requireAuth = true, 就表示有登入權限
+  if (to.matched.some((record) => record.meta.requireAuth)) {
+    if (!token) {
+      next({ path: "/login", query: { redirect: to.fullPath } });
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
+  // next();
 });
 
 router.afterEach(() => {

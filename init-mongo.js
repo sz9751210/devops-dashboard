@@ -1,4 +1,4 @@
-db = connect("mongodb://localhost:27017/devops");
+db = connect("mongodb://localhost:27017/it");
 
 var initialData = [
     {
@@ -34,5 +34,14 @@ var initialEvent = [
 
 db.link_list.insertMany(initialData);
 db.event.insertMany(initialEvent);
+
+db.users.insertMany([
+    {
+        username: 'admin_user',
+        password: '$2b$10$VDYowU8aAQdOR3Dz1xEoVOF9QJWdStymturxGMdKRRMfFrxQrkAa6',
+        role: 'admin',
+        created_at: new Date()
+    }
+]);
 
 print("Initial data inserted successfully");
