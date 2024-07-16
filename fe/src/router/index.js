@@ -52,6 +52,13 @@ const routes = [
         component: () => import("@/views/certificate/list/index"),
       },
       {
+        path: "/certificate/abnormal-list",
+        name: "Cert Abnormal List",
+        icon: "CircleCloseFilled",
+        meta: { title: "Cert Abnormal List", requireAuth: true },
+        component: () => import("@/views/certificate/abnormal-list/index"),
+      },
+      {
         path: "/certificate/check",
         name: "Certificate Check",
         icon: "CircleCheck",
