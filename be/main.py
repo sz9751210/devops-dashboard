@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from app.routes import setup_routes
-from config.db import get_client
+from config.config import get_client
 
 app = Flask(__name__)
 CORS(app)

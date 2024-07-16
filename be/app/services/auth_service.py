@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import bcrypt
 import jwt
-from config.db import get_secret_key
+from config.config import get_secret_key
 
 
 class AuthService:
