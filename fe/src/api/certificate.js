@@ -24,3 +24,11 @@ export function updateDomainStatus(data) {
     data,
   });
 }
+
+export function syncCloudflareRecords() {
+  return httpClient({
+    url: `${host}/certificate/sync-cloudflare`,
+    method: "post",
+    timeout: 3000000
+  });
+}

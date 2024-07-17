@@ -29,7 +29,12 @@
           <el-option label="關閉" :value="false"></el-option>
         </el-select>
       </div>
-      <el-button type="primary" @click="handleSearch">搜尋</el-button>
+      <div class="buttons">
+        <el-button type="primary" @click="handleSearch">搜尋</el-button>
+        <el-button type="success" @click="syncCloudflare"
+          >同步 Cloudflare</el-button
+        >
+      </div>
     </div>
 
     <!-- table -->
@@ -47,7 +52,7 @@
         sortable
       />
       <el-table-column
-        prop="update_time"
+        prop="update_date"
         label="更新時間"
         width="150"
         sortable
@@ -86,7 +91,11 @@
 </template>
 
 <script>
-import { fetchDomain, updateDomainStatus } from "@/api/certificate";
+import {
+  fetchDomain,
+  updateDomainStatus,
+  syncCloudflareRecords,
+} from "@/api/certificate";
 import { ElMessage } from "element-plus";
 
 export default {
@@ -138,7 +147,7 @@ export default {
               domain: domain.domain,
               subdomain: subdomain.name,
               expiry_date: subdomain.expiry_date || "N/A",
-              update_time: subdomain.update_time || "N/A",
+              update_date: subdomain.update_date || "N/A",
               status: subdomain.status,
               days_left: 0,
             });
@@ -263,6 +272,40 @@ export default {
         this.sortAndPageData();
       }
     },
+
+    async syncCloudflare() {
+      try {
+        ElMessage({
+          message: "開始同步 Cloudflare",
+          type: "info",
+          duration: 0, // 持续时间为0，表示消息不会自动消失，需要手动关闭
+        });
+        const response = await syncCloudflareRecords();
+        ElMessage.closeAll();
+        if (response.code === 200) {
+          ElMessage({
+            message: "同步 Cloudflare 成功",
+            type: "success",
+            duration: 3000,
+          });
+          console.log("同步成功，開始抓取域名數據");
+          await this.fetchDomain();
+        } else {
+          ElMessage({
+            message: "同步 Cloudflare 失敗",
+            type: "error",
+            duration: 3000,
+          });
+        }
+      } catch (error) {
+        console.error("Error syncing Cloudflare:", error);
+        ElMessage({
+          message: "同步 Cloudflare 失敗",
+          type: "error",
+          duration: 3000,
+        });
+      }
+    },
   },
 };
 </script>
@@ -281,6 +324,10 @@ export default {
 .status-select {
   margin-right: 5px;
   width: 180px;
+}
+.buttons {
+  display: flex;
+  gap: 5px;
 }
 .red-text {
   color: red;

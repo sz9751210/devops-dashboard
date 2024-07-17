@@ -22,15 +22,10 @@ class CertificateController:
                     "name": subdomain.get("name"),
                     "status": subdomain.get("status"),
                     "expiry_date": subdomain.get("expiry_date") if subdomain.get("expiry_date") else None,
-                    "update_time": subdomain.get("update_time") if subdomain.get("update_time") else None
+                    "update_date": subdomain.get("update_date") if subdomain.get("update_date") else None
                 })
             formatted_list.append(domain_info)
         return formatted_list
-
-    def format_date(self, date):
-        if date:
-            return datetime.strptime(date.isoformat(), '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d')
-        return None
 
     def get_certificate(self):
         domain = request.args.get('domain')
@@ -55,3 +50,12 @@ class CertificateController:
             return jsonify({"code": 200, "message": "域名狀態更新成功"})
         else:
             return jsonify({"code": 500, "message": "域名狀態更新失敗"}), 500
+
+    def sync_cloudflare(self):
+        try:
+            result = self.certificate_service.sync_cloudflare_records()
+            print(f"Sync result: {result}")  # 添加這一行
+            return jsonify({"code": 200, "message": "同步成功", "data": result})
+        except Exception as e:
+            print(f"Sync error: {str(e)}")  # 添加這一行
+            return jsonify({"code": 500, "message": f"同步失敗: {str(e)}"})

@@ -19,6 +19,7 @@ def setup_routes(app, client):
     app.add_url_rule(f"{api_prefix}/certificate/domains", view_func=certificate_controller.get_domains, methods=['GET'])
     app.add_url_rule(f"{api_prefix}/certificate/check", view_func=certificate_controller.get_certificate, methods=['GET'])
     app.add_url_rule(f"{api_prefix}/certificate/domain-status", view_func=certificate_controller.update_domain_status, methods=['PUT'])
+    app.add_url_rule(f"{api_prefix}/certificate/sync-cloudflare", view_func=certificate_controller.sync_cloudflare, methods=['POST'])
 
     # auth
     app.add_url_rule(f"{api_prefix}/auth/register", view_func=auth_controller.register, methods=['POST'])

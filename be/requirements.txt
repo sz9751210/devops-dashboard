@@ -4,3 +4,5 @@ pymongo==4.0.1
 Flask-Cors
 bcrypt
 PyJWT
+requests
+python-dotenv
