@@ -10,12 +10,12 @@ export function fetchEvent() {
   });
 }
 
-// 可以添加更多的API方法，例如新增事件、更新事件等
 export function createEvent(data) {
   return httpClient({
     url: `${host}/event`,
     method: "post",
     data,
+    timeout: 30000
   });
 }
 
