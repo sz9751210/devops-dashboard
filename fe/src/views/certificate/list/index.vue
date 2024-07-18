@@ -34,6 +34,9 @@
         <el-button type="success" @click="syncCloudflare"
           >同步 Cloudflare</el-button
         >
+        <el-button type="warning" @click="checkAllSubdomains"
+          >檢查所有子域名</el-button
+        >
       </div>
     </div>
 
@@ -95,6 +98,7 @@ import {
   fetchDomain,
   updateDomainStatus,
   syncCloudflareRecords,
+  checkSubdomains,
 } from "@/api/certificate";
 import { ElMessage } from "element-plus";
 
@@ -301,6 +305,32 @@ export default {
         console.error("Error syncing Cloudflare:", error);
         ElMessage({
           message: "同步 Cloudflare 失敗",
+          type: "error",
+          duration: 3000,
+        });
+      }
+    },
+    async checkAllSubdomains() {
+      try {
+        const response = await checkSubdomains();
+        console.log("response: ", response);
+        if (response.code === 200) {
+          ElMessage({
+            message: "子域名檢查成功",
+            type: "success",
+            duration: 3000,
+          });
+        } else {
+          ElMessage({
+            message: "子域名檢查失敗",
+            type: "error",
+            duration: 3000,
+          });
+        }
+      } catch (error) {
+        console.error("Error checking subdomains:", error);
+        ElMessage({
+          message: "子域名檢查失敗",
           type: "error",
           duration: 3000,
         });

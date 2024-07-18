@@ -1,6 +1,7 @@
 from flask import jsonify, request
 from app.services.certificate_service import CertificateService
 
+
 class CertificateController:
     def __init__(self, db):
         self.certificate_service = CertificateService(db)
@@ -44,7 +45,8 @@ class CertificateController:
         if not domain or not subdomain or status is None:
             return jsonify({"code": 400, "message": "請提供完整的數據"}), 400
 
-        success = self.certificate_service.update_domain_status(domain, subdomain, status)
+        success = self.certificate_service.update_domain_status(
+            domain, subdomain, status)
 
         if success:
             return jsonify({"code": 200, "message": "域名狀態更新成功"})
@@ -54,8 +56,23 @@ class CertificateController:
     def sync_cloudflare(self):
         try:
             result = self.certificate_service.sync_cloudflare_records()
-            print(f"Sync result: {result}")  # 添加這一行
+            print(f"Sync result: {result}")
             return jsonify({"code": 200, "message": "同步成功", "data": result})
         except Exception as e:
-            print(f"Sync error: {str(e)}")  # 添加這一行
+            print(f"Sync error: {str(e)}")
             return jsonify({"code": 500, "message": f"同步失敗: {str(e)}"})
+
+    def check_subdomains(self):
+        try:
+            domain_list = self.certificate_service.get_domain_list()
+            filtered_domain_list = self.certificate_service.filter_valid_domains(
+                domain_list)
+            if not filtered_domain_list:
+                return jsonify({"code": 400, "message": "No valid subdomains found"}), 400
+
+            self.certificate_service.check_subdomains(filtered_domain_list)
+
+            return jsonify({"code": 200, "message": "子域名檢查成功"})
+        except Exception as e:
+            print(f"Exception occurred: {str(e)}")
+            return jsonify({"code": 500, "message": f"子域名檢查失敗: {str(e)}"})

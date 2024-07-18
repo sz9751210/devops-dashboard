@@ -32,3 +32,11 @@ export function syncCloudflareRecords() {
     timeout: 3000000
   });
 }
+
+export function checkSubdomains() {
+  return httpClient({
+    url: `${host}/certificate/check-subdomains`,
+    method: "post",
+    timeout: 3000000
+  });
+}

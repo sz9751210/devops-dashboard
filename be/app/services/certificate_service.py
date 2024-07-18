@@ -5,6 +5,15 @@ from multiprocessing import Pool
 from datetime import datetime
 from app.utils.cloudflare import CloudflareManager
 from config.config import Config
+from config.config import get_client
+
+
+def check_domain_subdomains(domain_subdomains):
+    domain, subdomains = domain_subdomains
+    certificate_service = CertificateService(get_client())
+    print(f"Checking domain: {domain} with subdomains: {subdomains}")
+    for subdomain in subdomains:
+        certificate_service.check_ssl_expiration(domain, subdomain)
 
 
 class CertificateService:
@@ -144,7 +153,7 @@ class CertificateService:
         for sub in current_domains_dict[domain]:
             if sub['name'] not in subdomains:
                 subdomains_to_remove.append((domain, sub['name']))
-        
+
         with Pool() as pool:
             pool.starmap(self._remove_subdomain, subdomains_to_remove)
 
@@ -169,3 +178,57 @@ class CertificateService:
                     "domain": domain,
                     "subdomains": subdomain_list
                 })
+
+    def check_subdomains(self, domains):
+        # 按 domain 分組子域名
+        domain_dict = {}
+        for domain in domains:
+            domain_name = domain.get('domain')
+            subdomains = domain.get('subdomains')
+            subdomain_names = []
+            for sub in subdomains:
+                subdomain_name = sub['name']
+                subdomain_names.append(subdomain_name)
+
+            domain_dict[domain_name] = subdomain_names
+        # 使用 Pool 進行並發處理
+        with Pool() as pool:
+            pool.map(check_domain_subdomains, domain_dict.items())
+
+    def check_ssl_expiration(self, domain, subdomain):
+        cert = self.get_ssl_cert_info(subdomain)
+        cert_info = self.parse_ssl_cert_info(subdomain, cert)
+        expiry_date_str = cert_info.get('validUntil') if cert_info else None
+
+        if expiry_date_str:
+            expiry_date = datetime.strptime(expiry_date_str, "%Y-%m-%d")
+            remaining_days = (expiry_date - datetime.utcnow()).days
+            if remaining_days <= 15:
+                print(f"{subdomain} 的 SSL 證書將在 {remaining_days} 天內過期。")
+            else:
+                print(
+                    f"{subdomain} 的 SSL 證書過期日期是 {expiry_date.strftime('%Y-%m-%d')}。"
+                )
+        else:
+            print(f"無法獲取 {subdomain} 的 SSL 憑證信息。")
+
+    def filter_valid_domains(self, domain_list):
+        filtered_domains = []
+
+        for domain in domain_list:
+            domain_name = domain['domain']
+            subdomains = domain['subdomains']
+            filtered_subdomains = []
+
+            for sub in subdomains:
+                expiry_date = sub.get('expiry_date')
+                if expiry_date is not None and expiry_date != "N/A":
+                    filtered_subdomains.append(sub)
+
+            if filtered_subdomains:
+                filtered_domains.append({
+                    'domain': domain_name,
+                    'subdomains': filtered_subdomains
+                })
+
+        return filtered_domains
