@@ -22,7 +22,7 @@
         <template v-slot="scope">
           <el-button
             class="action-button"
-            size="mini"
+            size="small"
             type="primary"
             v-if="showOperations"
             @click="editEvent(scope.row)"
@@ -36,7 +36,7 @@
             <template #reference>
               <el-button
                 class="action-button"
-                size="mini"
+                size="small"
                 type="danger"
                 v-if="showOperations"
                 >Delete</el-button
@@ -45,7 +45,7 @@
           </el-popconfirm>
           <el-button
             class="action-button"
-            size="mini"
+            size="small"
             @click="viewDetail(scope.row)"
             >Detail</el-button
           >
@@ -262,7 +262,7 @@ export default {
         if (this.editingEventId) {
           delete eventData._id;
           console.log("Event data:", eventData);
-          await updateEvent(this.editingEventId, eventData);
+          await updateEvent(this.editingEventId, eventData,);
         } else {
           await createEvent(eventData);
         }
@@ -396,7 +396,7 @@ export default {
   white-space: pre-wrap;
 }
 .action-button {
-  margin-right: 5px;
+  margin-right: 1px;
 }
 .avatar {
   width: 100%;
