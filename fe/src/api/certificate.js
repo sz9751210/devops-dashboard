@@ -37,6 +37,6 @@ export function checkSubdomains() {
   return httpClient({
     url: `${host}/certificate/check-subdomains`,
     method: "post",
-    timeout: 3000000
+    timeout: 300000
   });
 }
