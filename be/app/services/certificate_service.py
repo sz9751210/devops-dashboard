@@ -6,7 +6,7 @@ from datetime import datetime
 from app.utils.cloudflare import CloudflareManager
 from config.config import Config
 from config.config import get_client
-
+from app.utils.notify import send_telegram_notification
 
 def check_domain_subdomains(domain_subdomains):
     domain, subdomains = domain_subdomains
@@ -79,10 +79,11 @@ class CertificateService:
 
     def sync_cloudflare_records(self):
         try:
-            # Fetch all domains and DNS records from Cloudflare
+            Config.refresh_settings_cache()
             cloudflare_manager = CloudflareManager(
-                api_key=Config.CLOUDFLARE_API_KEY, email=Config.CLOUDFLARE_EMAIL)
+                api_key=Config.get_cloudflare_api_key(), email=Config.get_cloudflare_email())
             domain_tuples = cloudflare_manager.fetch_all_domains_and_records()
+
 
             # Convert to dictionary format
             new_domains = self.convert_domains_to_dict(domain_tuples)
@@ -200,11 +201,23 @@ class CertificateService:
         cert_info = self.parse_ssl_cert_info(subdomain, cert)
         expiry_date_str = cert_info.get('validUntil') if cert_info else None
 
+        bot_token = Config.get_telegram_bot_token()
+        print("bot token: ", bot_token)
+        chat_id = Config.get_telegram_chat_id()
+        print("chat id: ", chat_id)
         if expiry_date_str:
             expiry_date = datetime.strptime(expiry_date_str, "%Y-%m-%d")
             remaining_days = (expiry_date - datetime.utcnow()).days
-            if remaining_days <= 15:
+            if remaining_days <= 30:
+                message = (
+                    f"<b>來源:</b> CloudFlare\n\n"
+                    f"<b>標題:</b> 憑證將到期\n\n"
+                    f"<b>Domain:</b> {subdomain}\n\n"
+                    f"<b>到期日:</b> {expiry_date.strftime('%Y-%m-%d')}\n\n"
+                    f"<b>剩餘天數:</b> {remaining_days}"
+                )
                 print(f"{subdomain} 的 SSL 證書將在 {remaining_days} 天內過期。")
+                send_telegram_notification(message, bot_token, chat_id)
             else:
                 print(
                     f"{subdomain} 的 SSL 證書過期日期是 {expiry_date.strftime('%Y-%m-%d')}。"

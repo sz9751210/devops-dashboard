@@ -81,6 +81,19 @@ const routes = [
     ],
   },
   {
+    path: "/settings",
+    component: Layout,
+    children: [
+      {
+        path: "/settings",
+        name: "Settings",
+        icon: "Setting",
+        meta: { title: "Settings", requireAuth: true },
+        component: () => import("@/views/settings/index"),
+      },
+    ],
+  },
+  {
     path: "/login",
     name: "Login",
     meta: { title: "Login", requireAuth: false },
@@ -124,19 +137,19 @@ router.beforeEach((to, from, next) => {
     document.title = "Devops Dashboard";
   }
 
-  const token = localStorage.getItem("token");
+  // const token = localStorage.getItem("token");
 
-  // 使用 Array.prototype.some(), 遍歷所有record, 只要有一個record.meta.requireAuth = true, 就表示有登入權限
-  if (to.matched.some((record) => record.meta.requireAuth)) {
-    if (!token) {
-      next({ path: "/login", query: { redirect: to.fullPath } });
-    } else {
-      next();
-    }
-  } else {
-    next();
-  }
-  // next();
+  // // 使用 Array.prototype.some(), 遍歷所有record, 只要有一個record.meta.requireAuth = true, 就表示有登入權限
+  // if (to.matched.some((record) => record.meta.requireAuth)) {
+  //   if (!token) {
+  //     next({ path: "/login", query: { redirect: to.fullPath } });
+  //   } else {
+  //     next();
+  //   }
+  // } else {
+  //   next();
+  // }
+  next();
 });
 
 router.afterEach(() => {

@@ -2,12 +2,14 @@ from app.controllers.link_list_controller import LinkListController
 from app.controllers.event_controller import EventController
 from app.controllers.certificate_controller import CertificateController
 from app.controllers.auth_controller import AuthController
+from app.controllers.setting_controller import SettingController
 
 def setup_routes(app, client):
     link_list_controller = LinkListController(client)
     event_controller = EventController(client)
     certificate_controller = CertificateController(client)
     auth_controller = AuthController(client)
+    setting_controller = SettingController(client)
     
     api_prefix= '/api/devops'
     
@@ -26,3 +28,8 @@ def setup_routes(app, client):
     app.add_url_rule(f"{api_prefix}/auth/register", view_func=auth_controller.register, methods=['POST'])
     app.add_url_rule(f"{api_prefix}/auth/login", view_func=auth_controller.login, methods=['POST'])
     
+    # Settings routes
+    app.add_url_rule(f"{api_prefix}/settings", view_func=setting_controller.get_settings, methods=['GET'])
+    app.add_url_rule(f"{api_prefix}/settings", view_func=setting_controller.add_setting, methods=['POST'])
+    app.add_url_rule(f"{api_prefix}/settings/<setting_id>", view_func=setting_controller.update_setting, methods=['PUT'])
+    app.add_url_rule(f"{api_prefix}/settings/<setting_id>", view_func=setting_controller.delete_setting, methods=['DELETE'])
