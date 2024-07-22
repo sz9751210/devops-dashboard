@@ -94,6 +94,19 @@ const routes = [
     ],
   },
   {
+    path: "/cronjob",
+    component: Layout,
+    children: [
+      {
+        path: "/cronjob",
+        name: "Cronjob",
+        icon: "Clock",
+        meta: { title: "Cronjob", requireAuth: true },
+        component: () => import("@/views/cronjob/index"),
+      },
+    ],
+  },
+  {
     path: "/login",
     name: "Login",
     meta: { title: "Login", requireAuth: false },

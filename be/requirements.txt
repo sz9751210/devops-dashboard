@@ -6,3 +6,4 @@ bcrypt
 PyJWT
 requests
 python-dotenv
+apscheduler

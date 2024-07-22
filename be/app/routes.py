@@ -3,13 +3,15 @@ from app.controllers.event_controller import EventController
 from app.controllers.certificate_controller import CertificateController
 from app.controllers.auth_controller import AuthController
 from app.controllers.setting_controller import SettingController
+from app.controllers.cronjob_controller import CronjobController
 
-def setup_routes(app, client):
+def setup_routes(app, client, scheduler):
     link_list_controller = LinkListController(client)
     event_controller = EventController(client)
     certificate_controller = CertificateController(client)
     auth_controller = AuthController(client)
     setting_controller = SettingController(client)
+    cronjob_controller = CronjobController(client, scheduler)
     
     api_prefix= '/api/devops'
     
@@ -33,3 +35,9 @@ def setup_routes(app, client):
     app.add_url_rule(f"{api_prefix}/settings", view_func=setting_controller.add_setting, methods=['POST'])
     app.add_url_rule(f"{api_prefix}/settings/<setting_id>", view_func=setting_controller.update_setting, methods=['PUT'])
     app.add_url_rule(f"{api_prefix}/settings/<setting_id>", view_func=setting_controller.delete_setting, methods=['DELETE'])
+
+    # Cronjob routes
+    app.add_url_rule("/api/devops/cronjobs", view_func=cronjob_controller.get_cronjobs, methods=['GET'])
+    app.add_url_rule("/api/devops/cronjob", view_func=cronjob_controller.add_cronjob, methods=['POST'])
+    app.add_url_rule("/api/devops/cronjob/<cronjob_id>", view_func=cronjob_controller.update_cronjob, methods=['PUT'])
+    app.add_url_rule("/api/devops/cronjob/<cronjob_id>", view_func=cronjob_controller.delete_cronjob, methods=['DELETE'])
