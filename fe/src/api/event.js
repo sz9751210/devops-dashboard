@@ -10,6 +10,13 @@ export function fetchEvent() {
   });
 }
 
+export function fetchEventDetail(id) {
+  return httpClient({
+    url: `${host}/event/${id}`,
+    method: "get",
+  });
+}
+
 export function createEvent(data) {
   return httpClient({
     url: `${host}/event`,

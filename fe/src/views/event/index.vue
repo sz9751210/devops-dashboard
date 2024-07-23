@@ -191,7 +191,7 @@
 </template>
 
 <script>
-import { fetchEvent, createEvent, updateEvent, deleteEvent } from "@/api/event"; // 調整路徑以符合你的專案結構
+import { fetchEvent, fetchEventDetail, createEvent, updateEvent, deleteEvent } from "@/api/event"; // 調整路徑以符合你的專案結構
 import { ElMessage, ElMessageBox } from "element-plus";
 
 export default {
@@ -239,6 +239,28 @@ export default {
         console.error("Error fetching Event:", error);
       }
     },
+    async viewDetail(event) {
+    try {
+      const response = await fetchEventDetail(event._id);
+      if (response && response.data) {
+        this.detailEvent = response.data;
+        this.showDetailDialog = true;
+      } else {
+        ElMessage({
+          message: "無法獲取事件詳細信息",
+          type: "error",
+          duration: 5 * 1000,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching event detail:", error);
+      ElMessage({
+        message: "無法獲取事件詳細信息",
+        type: "error",
+        duration: 5 * 1000,
+      });
+    }
+  },
     openDialog() {
       this.editingEventId = null;
       this.newEvent = {
@@ -325,10 +347,10 @@ export default {
         duration: 3 * 1000,
       });
     },
-    viewDetail(event) {
-      this.detailEvent = { ...event };
-      this.showDetailDialog = true;
-    },
+    // viewDetail(event) {
+    //   this.detailEvent = { ...event };
+    //   this.showDetailDialog = true;
+    // },
     handleDialogClose() {
       if (this.$refs.eventForm.$el.contains(document.activeElement)) {
         return;

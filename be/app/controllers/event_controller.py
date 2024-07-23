@@ -10,6 +10,13 @@ class EventController:
         event_list = self.event_service.get_event_list()
         return jsonify({"code": 200, "message": "success", "data": event_list})
 
+    def get_event_detail(self, event_id):
+        event = self.event_service.get_event_by_id(event_id)
+        if event:
+            return jsonify({"code": 200, "message": "success", "data": event})
+        else:
+            return jsonify({"code": 404, "message": "Event not found"}), 404
+
     def post_event(self):
         print("post event")
         event_data = request.get_json()
