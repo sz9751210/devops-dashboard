@@ -11,8 +11,6 @@ class CronjobController:
             cronjob['_id'] = str(cronjob['_id'])
         return jsonify({"code": 200, "message": "success", "data": cronjobs})
 
-        # return jsonify({"code": 200, "message": "success", "data": cronjobs})
-
     def add_cronjob(self):
         cronjob_data = request.get_json()
         cronjob_id = self.cronjob_service.add_cronjob(cronjob_data)
