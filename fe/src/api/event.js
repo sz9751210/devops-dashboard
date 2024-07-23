@@ -14,6 +14,7 @@ export function fetchEventDetail(id) {
   return httpClient({
     url: `${host}/event/${id}`,
     method: "get",
+    timeout: 30000
   });
 }
 
@@ -31,6 +32,7 @@ export function updateEvent(id, data) {
     url: `${host}/event/${id}`,
     method: "put",
     data,
+    timeout: 30000
   });
 }
 
@@ -38,5 +40,6 @@ export function deleteEvent(id) {
   return httpClient({
     url: `${host}/event/${id}`,
     method: "delete",
+    timeout: 30000
   });
 }

@@ -191,7 +191,13 @@
 </template>
 
 <script>
-import { fetchEvent, fetchEventDetail, createEvent, updateEvent, deleteEvent } from "@/api/event"; // 調整路徑以符合你的專案結構
+import {
+  fetchEvent,
+  fetchEventDetail,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+} from "@/api/event"; // 調整路徑以符合你的專案結構
 import { ElMessage, ElMessageBox } from "element-plus";
 
 export default {
@@ -240,27 +246,45 @@ export default {
       }
     },
     async viewDetail(event) {
-    try {
-      const response = await fetchEventDetail(event._id);
-      if (response && response.data) {
-        this.detailEvent = response.data;
-        this.showDetailDialog = true;
-      } else {
+      let loadingMessage = null;
+
+      // 設置一個計時器，1秒後顯示提示消息
+      const timeoutId = setTimeout(() => {
+        loadingMessage = ElMessage({
+          message: "內容較多請稍待片刻...",
+          type: "info",
+          duration: 0, // duration 設為 0 以保持消息一直顯示
+        });
+      }, 1000); // 1 秒延遲
+
+      try {
+        const response = await fetchEventDetail(event._id);
+        // 如果在 1 秒內獲取到數據，則清除計時器，不顯示提示消息
+        clearTimeout(timeoutId);
+
+        // 如果提示消息已經顯示，則關閉提示消息
+        if (loadingMessage) {
+          loadingMessage.close();
+        }
+        if (response && response.data) {
+          this.detailEvent = response.data;
+          this.showDetailDialog = true;
+        } else {
+          ElMessage({
+            message: "無法獲取事件詳細信息",
+            type: "error",
+            duration: 5 * 1000,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching event detail:", error);
         ElMessage({
           message: "無法獲取事件詳細信息",
           type: "error",
           duration: 5 * 1000,
         });
       }
-    } catch (error) {
-      console.error("Error fetching event detail:", error);
-      ElMessage({
-        message: "無法獲取事件詳細信息",
-        type: "error",
-        duration: 5 * 1000,
-      });
-    }
-  },
+    },
     openDialog() {
       this.editingEventId = null;
       this.newEvent = {
@@ -284,7 +308,7 @@ export default {
         if (this.editingEventId) {
           delete eventData._id;
           console.log("Event data:", eventData);
-          await updateEvent(this.editingEventId, eventData,);
+          await updateEvent(this.editingEventId, eventData);
         } else {
           await createEvent(eventData);
         }
@@ -309,7 +333,10 @@ export default {
     editEvent(event) {
       if (event) {
         this.newEvent = { ...event, imageUrls: event.imageUrls || [] };
-        this.fileList = this.newEvent.imageUrls.map((url, index) => ({ name: `Image ${index + 1}`, url }));
+        this.fileList = this.newEvent.imageUrls.map((url, index) => ({
+          name: `Image ${index + 1}`,
+          url,
+        }));
         this.editingEventId = event._id;
         this.showDialog = true;
       } else {
