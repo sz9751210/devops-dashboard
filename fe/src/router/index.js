@@ -139,6 +139,12 @@ const router = createRouter({
 NProgress.inc(0.2); // 設置進度條遞增
 NProgress.configure({ easing: "ease", speed: 500, showSpinner: false }); // 設置進度條顯示方式
 
+function isTokenExpired(token){
+  const payload = JSON.parse(atob(token.split(".")[1]));
+  const now = Math.floor(Date.now() / 1000);
+  return now > payload.exp;
+}
+
 // 路由守衛
 router.beforeEach((to, from, next) => {
   // 進度條開始
@@ -150,19 +156,20 @@ router.beforeEach((to, from, next) => {
     document.title = "Devops Dashboard";
   }
 
-  // const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
-  // // 使用 Array.prototype.some(), 遍歷所有record, 只要有一個record.meta.requireAuth = true, 就表示有登入權限
-  // if (to.matched.some((record) => record.meta.requireAuth)) {
-  //   if (!token) {
-  //     next({ path: "/login", query: { redirect: to.fullPath } });
-  //   } else {
-  //     next();
-  //   }
-  // } else {
-  //   next();
-  // }
-  next();
+  // 使用 Array.prototype.some(), 遍歷所有record, 只要有一個record.meta.requireAuth = true, 就表示有登入權限
+  if (to.matched.some((record) => record.meta.requireAuth)) {
+    if (!token|| isTokenExpired(token)) {
+      localStorage.removeItem("token");
+      next({ path: "/login", query: { redirect: to.fullPath } });
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
+  // next();
 });
 
 router.afterEach(() => {

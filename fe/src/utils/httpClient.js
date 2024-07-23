@@ -1,4 +1,5 @@
 // src/utils/httpClient.js
+import router from "@/router";
 import axios from "axios";
 import { ElMessage } from "element-plus";
 
@@ -16,11 +17,15 @@ httpClient.defaults.shouldRetry = true; // 是否重試
 
 httpClient.interceptors.request.use(
   (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers["Authorization"] = token;
+    }
     // 設置headers
     config.headers = {
       "Content-Type": "application/json",
       "Accept-Language": "zh-TW",
-      Authorization: localStorage.getItem("token"),
+      // Authorization: localStorage.getItem("token"),
     };
     if (config.method === "post") {
       if (!config.data) {
@@ -43,7 +48,12 @@ httpClient.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    ElMessage.error(error.message || "Error");
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem("token");
+      router.push({ path: "/login" });
+    } else {
+      ElMessage.error(error.message || "Error");
+    }
     return Promise.reject(error);
   }
 );

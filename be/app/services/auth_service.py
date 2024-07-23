@@ -34,7 +34,7 @@ class AuthService:
     def generate_token(self, username):
         payload = {
             'username': username,
-            'exp': datetime.utcnow() + timedelta(hours=24)
+            'exp': datetime.utcnow() + timedelta(hours=1)
         }
         token = jwt.encode(
             payload,

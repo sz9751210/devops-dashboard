@@ -48,7 +48,9 @@ export default {
         console.log(response);
         if (response.code === 200) {
           localStorage.setItem("token", response.token);
-
+          console.log("response", response);
+          const payload = this.getPayloadFromToken(response.token);
+          console.log('Token payload:', payload);
           // 確保返回到之前用戶想訪問的頁面或首頁
           const redirect = this.$route.query.redirect || "/";
           this.$router.push(redirect);
@@ -58,6 +60,16 @@ export default {
       } catch (error) {
         console.error(error);
         this.message = "登入過程中發生錯誤";
+      }
+    },
+    getPayloadFromToken(token) {
+      try {
+        const payloadBase64 = token.split('.')[1];
+        const decodedPayload = atob(payloadBase64);
+        return JSON.parse(decodedPayload);
+      } catch (error) {
+        console.error('無法解析 token payload:', error);
+        return null;
       }
     },
     goToRegister() {
