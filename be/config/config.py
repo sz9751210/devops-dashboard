@@ -26,6 +26,13 @@ class Config:
         if setting:
             return setting
         return None
+    
+    @classmethod
+    def get_operation_logs_from_db(cls):
+        client = cls.get_client()
+        db = client['it']
+        collection = db['operation_logs']
+        return collection
 
     @classmethod
     def refresh_settings_cache(cls):

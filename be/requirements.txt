@@ -7,3 +7,4 @@ PyJWT
 requests
 python-dotenv
 apscheduler
+pytz

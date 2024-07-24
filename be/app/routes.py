@@ -4,6 +4,7 @@ from app.controllers.certificate_controller import CertificateController
 from app.controllers.auth_controller import AuthController
 from app.controllers.setting_controller import SettingController
 from app.controllers.cronjob_controller import CronjobController
+from app.controllers.operation_log_controller import OperationLogController
 
 def setup_routes(app, client, scheduler):
 
@@ -14,7 +15,8 @@ def setup_routes(app, client, scheduler):
     auth_controller = AuthController(client)
     setting_controller = SettingController(client)
     cronjob_controller = CronjobController(client, scheduler)
-    
+    operation_log_controller = OperationLogController(client)
+
     api_prefix= '/api/devops'
     
     # link-list
@@ -49,3 +51,7 @@ def setup_routes(app, client, scheduler):
     app.add_url_rule("/api/devops/cronjob", view_func=cronjob_controller.add_cronjob, methods=['POST'])
     app.add_url_rule("/api/devops/cronjob/<cronjob_id>", view_func=cronjob_controller.update_cronjob, methods=['PUT'])
     app.add_url_rule("/api/devops/cronjob/<cronjob_id>", view_func=cronjob_controller.delete_cronjob, methods=['DELETE'])
+
+    # Operation logs route
+    app.add_url_rule(f"{api_prefix}/operation_logs", view_func=operation_log_controller.get_operation_logs, methods=['GET'])
+    

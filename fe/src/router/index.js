@@ -81,6 +81,19 @@ const routes = [
     ],
   },
   {
+    path: '/operation-logs',
+    component: Layout,
+    children: [
+      {
+        path: '/operation-logs',
+        name: '系統紀錄',
+        icon: "Memo",
+        meta: { title: "系統紀錄", requireAuth: true },
+        component: () => import("@/views/operation-log/index"),
+      },
+    ],
+  },
+  {
     path: "/settings",
     component: Layout,
     children: [
