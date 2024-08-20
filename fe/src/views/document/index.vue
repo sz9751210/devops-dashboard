@@ -109,9 +109,9 @@
           <el-select v-model="newDocument.folderId" placeholder="選擇目錄">
             <el-option
               v-for="folder in getLeafFolders(directoryTree)"
-              :key="folder.id"
+              :key="folder._id"
               :label="folder.label"
-              :value="folder.id"
+              :value="folder._id"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -122,6 +122,18 @@
 </template>
 
 <script>
+import {
+  fetchDocuments,
+  fetchDocumentDetail,
+  createDocument,
+  updateDocument,
+  deleteDocument,
+  fetchFolders,
+  createFolder as apiCreateFolder,
+  updateFolder as apiUpdateFolder,
+  deleteFolder as apiDeleteFolder,
+} from "@/api/document";
+
 export default {
   data() {
     return {
@@ -150,10 +162,37 @@ export default {
       },
     };
   },
+  created() {
+    this.fetchFolders();
+  },
   methods: {
-    handleNodeClick(node) {
+    async fetchFolders() {
+      try {
+        const response = await fetchFolders();
+        this.directoryTree = response.data.map((folder) => ({
+          ...folder,
+          files: folder.files || [], // 如果後端沒有提供 `files` 屬性，則默認設置為空數組
+        }));
+      } catch (error) {
+        console.error("Error fetching folders:", error);
+      }
+    },
+    async handleNodeClick(node) {
+      if (!node) {
+        console.error("Node is null, cannot proceed.");
+        this.currentFiles = []; // 設置為空數組以避免 UI 問題
+        return;
+      }
+
       this.currentFolder = node;
-      this.currentFiles = node.files || [];
+      // 過濾出屬於該目錄的文件
+      try {
+        const response = await fetchDocuments(node._id);
+        this.currentFiles = response.data;
+      } catch (error) {
+        console.error("Error fetching documents:", error);
+        this.currentFiles = [];
+      }
     },
     toggleEditMode() {
       this.editMode = !this.editMode;
@@ -161,55 +200,53 @@ export default {
     openAddFolderDialog() {
       this.showAddFolderDialog = true;
     },
-    createFolder() {
-      if (this.addFolderLevel === "current" && this.currentFolder) {
-        this.currentFolder.children = this.currentFolder.children || [];
-        this.currentFolder.children.push({
-          id: Date.now(),
+    async createFolder() {
+      try {
+        const newFolder = {
           label: this.newFolderName,
-          children: [],
-          files: [],
-        });
-      } else {
-        this.directoryTree.push({
-          id: Date.now(),
-          label: this.newFolderName,
-          children: [],
-          files: [],
-        });
+          parentId:
+            this.addFolderLevel === "current" && this.currentFolder
+              ? this.currentFolder._id
+              : null,
+        };
+        await apiCreateFolder(newFolder);
+
+        // this.directoryTree.push(response.data);
+        // 在成功創建目錄後，重新調用 fetchFolders 來刷新目錄樹
+        this.fetchFolders();
+        this.showAddFolderDialog = false;
+        this.newFolderName = "";
+      } catch (error) {
+        console.error("Error creating folder:", error);
       }
-      this.showAddFolderDialog = false;
-      this.newFolderName = "";
-      this.addFolderLevel = "root";
     },
     openRenameFolderDialog() {
       this.renameFolderName = this.currentFolder.label;
       this.showRenameFolderDialog = true;
     },
-    renameFolder() {
-      if (this.currentFolder) {
+    async renameFolder() {
+      try {
+        const updatedFolder = {
+          ...this.currentFolder,
+          label: this.renameFolderName,
+        };
+        await apiUpdateFolder(this.currentFolder._id, updatedFolder);
         this.currentFolder.label = this.renameFolderName;
+        this.showRenameFolderDialog = false;
+      } catch (error) {
+        console.error("Error renaming folder:", error);
       }
-      this.showRenameFolderDialog = false;
-      this.renameFolderName = "";
     },
-    deleteCurrentFolder() {
-      const removeNode = (nodes, folder) => {
-        const index = nodes.findIndex((node) => node.id === folder.id);
-        if (index !== -1) {
-          nodes.splice(index, 1);
-          return true;
-        }
-        for (let node of nodes) {
-          if (node.children && node.children.length > 0) {
-            const removed = removeNode(node.children, folder);
-            if (removed) return true;
-          }
-        }
-        return false;
-      };
-      removeNode(this.directoryTree, this.currentFolder);
-      this.currentFolder = null;
+    async deleteCurrentFolder() {
+      try {
+        await apiDeleteFolder(this.currentFolder._id);
+        this.directoryTree = this.directoryTree.filter(
+          (folder) => folder._id !== this.currentFolder._id
+        );
+        this.currentFolder = null;
+      } catch (error) {
+        console.error("Error deleting folder:", error);
+      }
     },
     openAddDocumentDialog() {
       this.isEditing = false;
@@ -217,91 +254,49 @@ export default {
         title: "",
         author: "",
         date: "",
-        folderId: null, // 預設為 null，讓用戶選擇目錄
-        originalFolderId: null, // 預設為 null
-      };
-      this.showAddDocumentDialog = true;
-    },
-    editDocument(document) {
-      this.isEditing = true;
-      this.newDocument = {
-        ...document,
-        originalFolderId: this.currentFolder.id,
-      };
-      this.showAddDocumentDialog = true;
-    },
-    saveDocument() {
-      if (this.isEditing) {
-        // 編輯模式下，更新文件位置和其他屬性
-        const originalFolder = this.findFolderById(
-          this.newDocument.originalFolderId
-        );
-        const targetFolder = this.findFolderById(this.newDocument.folderId);
-
-        if (originalFolder && targetFolder) {
-          const fileIndex = originalFolder.files?.findIndex(
-            (file) => file.id === this.newDocument.id
-          );
-
-          if (fileIndex !== -1 && fileIndex !== undefined) {
-            // 更新文件內容
-            const updatedFile = {
-              ...originalFolder.files[fileIndex],
-              title: this.newDocument.title,
-              author: this.newDocument.author,
-              date: this.newDocument.date,
-            };
-
-            // 如果目錄改變，移動文件
-            if (originalFolder !== targetFolder) {
-              // 將文件從原來的目錄中移除
-              originalFolder.files.splice(fileIndex, 1);
-              // 添加到新目錄
-              targetFolder.files = targetFolder.files || [];
-              targetFolder.files.push(updatedFile);
-            } else {
-              // 只更新文件屬性，不移動
-              originalFolder.files.splice(fileIndex, 1, updatedFile);
-            }
-          } else {
-            console.error("文件未找到，無法更新");
-          }
-        } else {
-          console.error("目錄未找到，無法更新文件");
-        }
-      } else {
-        // 新增模式下，直接保存文件
-        const targetFolder = this.findFolderById(this.newDocument.folderId);
-        if (targetFolder) {
-          targetFolder.files = targetFolder.files || [];
-          targetFolder.files.push({ ...this.newDocument, id: Date.now() });
-        } else {
-          console.error("目錄未找到，無法保存文件");
-        }
-      }
-
-      // 重置狀態並關閉對話框
-      this.showAddDocumentDialog = false;
-      this.newDocument = {
-        title: "",
-        author: "",
-        date: "",
-        folderId: null,
+        folderId: this.currentFolder ? this.currentFolder._id : null,
         originalFolderId: null,
       };
-      this.handleNodeClick(this.currentFolder);
+      this.showAddDocumentDialog = true;
     },
-
-    deleteDocument(document) {
-      const index = this.currentFiles.indexOf(document);
-      if (index !== -1) {
-        this.currentFiles.splice(index, 1);
+    async editDocument(document) {
+      try {
+        this.isEditing = true;
+        const response = await fetchDocumentDetail(document._id);
+        this.newDocument = response.data;
+        this.newDocument.originalFolderId = this.currentFolder._id;
+        this.showAddDocumentDialog = true;
+      } catch (error) {
+        console.error("Error fetching document details:", error);
+      }
+    },
+    async saveDocument() {
+      try {
+        if (this.isEditing) {
+          await updateDocument(this.newDocument._id, this.newDocument);
+        } else {
+          await createDocument(this.newDocument);
+        }
+        this.handleNodeClick(this.currentFolder);
+        this.showAddDocumentDialog = false;
+      } catch (error) {
+        console.error("Error saving document:", error);
+      }
+    },
+    async deleteDocument(document) {
+      try {
+        await deleteDocument(document._id);
+        this.currentFiles = this.currentFiles.filter(
+          (file) => file._id !== document._id
+        );
+      } catch (error) {
+        console.error("Error deleting document:", error);
       }
     },
     findFolderById(id) {
       const findInTree = (nodes) => {
         for (let node of nodes) {
-          if (node.id === id) return node;
+          if (node._id === id) return node;
           if (node.children && node.children.length > 0) {
             const found = findInTree(node.children);
             if (found) return found;
@@ -315,7 +310,7 @@ export default {
       let result = [];
       for (let node of nodes) {
         if (!node.children || node.children.length === 0) {
-          result.push({ id: node.id, label: node.label });
+          result.push({ _id: node._id, label: node.label });
         } else {
           result = result.concat(this.getLeafFolders(node.children));
         }
