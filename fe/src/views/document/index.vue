@@ -417,6 +417,7 @@ export default {
 <style scoped>
 .document-page {
   display: flex;
+  height: 100vh; /* 使页面高度占满整个视窗 */
 }
 
 .sidebar {
@@ -442,6 +443,7 @@ export default {
   width: 2px;
   background-color: #dcdfe6;
   margin-right: 20px;
+  align-self: stretch;
 }
 
 .directory-tree {
