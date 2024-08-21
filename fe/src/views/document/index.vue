@@ -44,6 +44,9 @@
       </div>
     </div>
 
+    <!-- 分隔線 -->
+    <div class="vertical-divider"></div>
+
     <!-- 右側文件顯示區域 -->
     <div class="content">
       <div class="header">
@@ -69,11 +72,25 @@
 
     <!-- 新增目錄對話框 -->
     <el-dialog title="新增目錄" v-model="showAddFolderDialog">
-      <el-radio-group v-model="addFolderLevel">
-        <el-radio label="root">根目錄</el-radio>
-        <el-radio label="current" :disabled="!currentFolder">當前目錄</el-radio>
-      </el-radio-group>
-      <el-input v-model="newFolderName" placeholder="輸入目錄名稱"></el-input>
+      <el-form>
+        <el-form-item label="父目錄">
+          <el-select v-model="selectedParentFolderId" placeholder="選擇父目錄">
+            <el-option :label="'無父目錄'" :value="null"></el-option>
+            <el-option
+              v-for="folder in getAllFolders(directoryTree)"
+              :key="folder._id"
+              :label="folder.label"
+              :value="folder._id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="目錄名稱">
+          <el-input
+            v-model="newFolderName"
+            placeholder="輸入目錄名稱"
+          ></el-input>
+        </el-form-item>
+      </el-form>
       <el-button type="primary" @click="createFolder">確定</el-button>
     </el-dialog>
 
@@ -129,9 +146,9 @@ import {
   updateDocument,
   deleteDocument,
   fetchFolders,
-  createFolder as apiCreateFolder,
-  updateFolder as apiUpdateFolder,
-  deleteFolder as apiDeleteFolder,
+  createFolder,
+  updateFolder,
+  deleteFolder,
 } from "@/api/document";
 
 export default {
@@ -143,6 +160,7 @@ export default {
       newFolderName: "",
       renameFolderName: "",
       folderToRename: null,
+      selectedParentFolderId: null, // 選擇的父目錄 ID
       newDocument: {
         title: "",
         author: "",
@@ -169,10 +187,27 @@ export default {
     async fetchFolders() {
       try {
         const response = await fetchFolders();
-        this.directoryTree = response.data.map((folder) => ({
-          ...folder,
-          files: folder.files || [], // 如果後端沒有提供 `files` 屬性，則默認設置為空數組
-        }));
+        const flatFolders = response.data;
+
+        // 將目錄列表轉換為樹狀結構
+        const folderMap = {};
+        flatFolders.forEach((folder) => {
+          folder.children = [];
+          folderMap[folder._id] = folder;
+        });
+
+        const treeData = [];
+        flatFolders.forEach((folder) => {
+          if (folder.parentId) {
+            if (folderMap[folder.parentId]) {
+              folderMap[folder.parentId].children.push(folder);
+            }
+          } else {
+            treeData.push(folder);
+          }
+        });
+
+        this.directoryTree = treeData;
       } catch (error) {
         console.error("Error fetching folders:", error);
       }
@@ -199,23 +234,65 @@ export default {
     },
     openAddFolderDialog() {
       this.showAddFolderDialog = true;
+      // 默認選擇當前目錄作為父目錄
+      this.selectedParentFolderId = this.currentFolder
+        ? this.currentFolder._id
+        : null;
+    },
+    async fetchFolders() {
+      try {
+        const response = await fetchFolders();
+        const flatFolders = response.data;
+
+        // 將目錄列表轉換為樹狀結構
+        const folderMap = {};
+        flatFolders.forEach((folder) => {
+          folder.children = [];
+          folderMap[folder._id] = folder;
+        });
+
+        const treeData = [];
+        flatFolders.forEach((folder) => {
+          if (folder.parentId) {
+            if (folderMap[folder.parentId]) {
+              folderMap[folder.parentId].children.push(folder);
+            }
+          } else {
+            treeData.push(folder);
+          }
+        });
+
+        this.directoryTree = treeData;
+      } catch (error) {
+        console.error("Error fetching folders:", error);
+      }
     },
     async createFolder() {
       try {
         const newFolder = {
           label: this.newFolderName,
-          parentId:
-            this.addFolderLevel === "current" && this.currentFolder
-              ? this.currentFolder._id
-              : null,
+          parentId: this.selectedParentFolderId || null, // 使用選擇的父目錄 ID
         };
-        await apiCreateFolder(newFolder);
 
-        // this.directoryTree.push(response.data);
-        // 在成功創建目錄後，重新調用 fetchFolders 來刷新目錄樹
-        this.fetchFolders();
+        // 調用 API 創建新目錄
+        await createFolder(newFolder);
+
+        // 刷新目錄樹，顯示新增的目錄
+        await this.fetchFolders();
+
+        // 如果新增目錄是當前選中目錄的子目錄，刷新後自動展開這個目錄
+        if (this.selectedParentFolderId) {
+          const updatedParentFolder = this.findFolderById(
+            this.selectedParentFolderId
+          );
+          if (updatedParentFolder) {
+            this.handleNodeClick(updatedParentFolder);
+          }
+        }
+
         this.showAddFolderDialog = false;
         this.newFolderName = "";
+        this.selectedParentFolderId = null;
       } catch (error) {
         console.error("Error creating folder:", error);
       }
@@ -230,7 +307,7 @@ export default {
           ...this.currentFolder,
           label: this.renameFolderName,
         };
-        await apiUpdateFolder(this.currentFolder._id, updatedFolder);
+        await updateFolder(this.currentFolder._id, updatedFolder);
         this.currentFolder.label = this.renameFolderName;
         this.showRenameFolderDialog = false;
       } catch (error) {
@@ -239,7 +316,7 @@ export default {
     },
     async deleteCurrentFolder() {
       try {
-        await apiDeleteFolder(this.currentFolder._id);
+        await deleteFolder(this.currentFolder._id);
         this.directoryTree = this.directoryTree.filter(
           (folder) => folder._id !== this.currentFolder._id
         );
@@ -254,17 +331,22 @@ export default {
         title: "",
         author: "",
         date: "",
-        folderId: this.currentFolder ? this.currentFolder._id : null,
+        folderId: null,
         originalFolderId: null,
       };
       this.showAddDocumentDialog = true;
+      // 將父目錄設為 null，允許創建根目錄或同級目錄
+      this.selectedParentFolderId = null;
     },
     async editDocument(document) {
       try {
         this.isEditing = true;
         const response = await fetchDocumentDetail(document._id);
         this.newDocument = response.data;
-        this.newDocument.originalFolderId = this.currentFolder._id;
+
+        // 设置为文档当前的 folderId，而不是原来的 currentFolder._id
+        this.newDocument.folderId = response.data.folderId;
+        // this.newDocument.originalFolderId = this.currentFolder._id;
         this.showAddDocumentDialog = true;
       } catch (error) {
         console.error("Error fetching document details:", error);
@@ -317,6 +399,17 @@ export default {
       }
       return result;
     },
+    // 獲取所有目錄（包括子目錄）
+    getAllFolders(nodes) {
+      let result = [];
+      for (let node of nodes) {
+        result.push({ _id: node._id, label: node.label });
+        if (node.children && node.children.length > 0) {
+          result = result.concat(this.getAllFolders(node.children));
+        }
+      }
+      return result;
+    },
   },
 };
 </script>
@@ -343,6 +436,12 @@ export default {
   height: 2px;
   background-color: #dcdfe6;
   margin-bottom: 10px;
+}
+
+.vertical-divider {
+  width: 2px;
+  background-color: #dcdfe6;
+  margin-right: 20px;
 }
 
 .directory-tree {
