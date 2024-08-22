@@ -10,7 +10,7 @@ class CloudflareManager:
     def fetch_all_domains_and_records(self):
         headers = {
             "X-Auth-Email": self.email,
-            "X-Auth-Key": self.api_key,
+            "Authorization": "Bearer " + self.api_key,
             "Content-Type": "application/json",
         }
         all_domains_info = []
