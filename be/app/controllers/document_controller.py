@@ -1,5 +1,9 @@
 from flask import jsonify, request
 from app.services.document_service import DocumentService
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 class DocumentController:
     def __init__(self, db):
@@ -65,3 +69,23 @@ class DocumentController:
     def delete_folder(self, folder_id):
         self.document_service.delete_folder(folder_id)
         return jsonify({"code": 200, "message": "Folder deleted successfully"})
+
+    def upload_image(self):
+        logger.info("Request files: %s",request.files)
+        if 'file' not in request.files:
+            return jsonify({"code": 400, "message": "No file part"}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"code": 400, "message": "No selected file"}), 400
+
+        image_id = self.document_service.upload_image(file)
+        return jsonify({"code": 200, "message": "Image uploaded successfully", "data": {"image_id": image_id}})
+    
+    # 獲取圖片
+    def get_image(self, image_id):
+        image = self.document_service.get_image(image_id)
+        if image:
+            return image
+        else:
+            return jsonify({"code": 404, "message": "Image not found"}), 404

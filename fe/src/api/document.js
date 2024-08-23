@@ -74,3 +74,14 @@ export function deleteFolder(id) {
     method: "delete",
   });
 }
+
+export function uploadImage(formData) {
+  return httpClient({
+    url: `${host}/upload-image`,
+    method: "post",
+    data: formData,
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}

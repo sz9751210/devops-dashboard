@@ -1,10 +1,18 @@
 from bson.objectid import ObjectId
+from gridfs import GridFS
+from flask import jsonify, send_file
+import io
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 class DocumentService:
     def __init__(self, client):
         db = client['it']
         self.documents_collection = db['documents']
         self.folders_collection = db['folders']
+        self.fs = GridFS(db)
 
     # 文件操作
     def get_all_documents(self):
@@ -62,3 +70,28 @@ class DocumentService:
 
     def delete_folder(self, folder_id):
         self.folders_collection.delete_one({'_id': ObjectId(folder_id)})
+
+    # 上傳圖片
+    def upload_image(self, image_file):
+        image_id = self.fs.put(image_file, filename=image_file.filename)
+        return str(image_id)
+
+    # 獲取圖片
+    def get_image(self, image_id):
+        try:
+            # 記錄下收到的 image_id
+            logger.debug(f"Attempting to retrieve image with ID: {image_id}")
+            
+            # 嘗試從 GridFS 中獲取圖片
+            image = self.fs.get(ObjectId(image_id))
+            
+            # 如果成功獲取圖片，記錄圖片的部分信息
+            logger.debug(f"Image retrieved: {image.filename}, {image.length} bytes")
+            
+            mimetype = image.content_type if image.content_type else 'application/octet-stream'
+            
+            return send_file(io.BytesIO(image.read()), mimetype=mimetype, download_name=image.filename)
+        except Exception as e:
+            # 如果發生錯誤，記錄下錯誤信息
+            logger.error(f"Error retrieving image: {e}")
+            return jsonify({"code": 404, "message": "Image not found"}), 404

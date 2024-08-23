@@ -44,6 +44,10 @@ def setup_routes(app, client, scheduler):
     app.add_url_rule(f"{api_prefix}/folders/<folder_id>", view_func=document_controller.update_folder, methods=['PUT'])
     app.add_url_rule(f"{api_prefix}/folders/<folder_id>", view_func=document_controller.delete_folder, methods=['DELETE'])
 
+    # 圖片上傳與獲取
+    app.add_url_rule(f"{api_prefix}/upload-image", view_func=document_controller.upload_image, methods=['POST'])
+    app.add_url_rule(f"{api_prefix}/image/<image_id>", view_func=document_controller.get_image, methods=['GET'])
+    
     # certificate
     app.add_url_rule(f"{api_prefix}/certificate/domains", view_func=certificate_controller.get_domains, methods=['GET'])
     app.add_url_rule(f"{api_prefix}/certificate/check", view_func=certificate_controller.get_certificate, methods=['GET'])

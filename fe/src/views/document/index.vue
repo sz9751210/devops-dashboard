@@ -134,7 +134,11 @@
         </el-form-item>
         <el-form-item label="內容">
           <!-- Markdown 編輯器 -->
-          <v-md-editor v-model="newDocument.content"/>
+          <v-md-editor
+            v-model="newDocument.content"
+            :disabled-menus="[]"
+            @upload-image="handleUploadImage"
+          />
         </el-form-item>
       </el-form>
       <el-button type="primary" @click="saveDocument">確定</el-button>
@@ -147,6 +151,7 @@ import VMdEditor from "@kangc/v-md-editor";
 import "@kangc/v-md-editor/lib/style/base-editor.css";
 import vuepressTheme from "@kangc/v-md-editor/lib/theme/vuepress.js";
 import "@kangc/v-md-editor/lib/theme/style/vuepress.css";
+import zhTW from '@kangc/v-md-editor/lib/lang/zh-TW';
 import Prism from "prismjs";
 import {
   fetchDocuments,
@@ -158,12 +163,15 @@ import {
   createFolder,
   updateFolder,
   deleteFolder,
+  uploadImage,
 } from "@/api/document";
 
 // 配置 Markdown 編輯器
 VMdEditor.use(vuepressTheme, {
   Prism,
 });
+
+VMdEditor.lang.use('zh-TW', zhTW);
 
 export default {
   components: {
@@ -400,6 +408,37 @@ export default {
         }
       }
       return result;
+    },
+    async handleUploadImage(event, insertImage, files) {
+      try {
+        if (!files || files.length === 0) {
+          console.error("No file selected");
+          return;
+        }
+
+        const file = files[0]; // 假設一次上傳一張圖片
+        console.log("Uploading image:", file);
+
+        // 構造 FormData 對象
+        const formData = new FormData();
+        formData.append("file", file);
+
+        // 調用 API 上傳圖片
+        const response = await uploadImage(formData);
+        console.log("Image uploaded successfully:", response.data);
+
+        // 構建圖片的完整 URL
+        const imageUrl = `${window.location.origin}/api/devops/image/${response.data.image_id}`;
+        console.log("Image URL:", imageUrl);
+
+        // 將圖片 URL 插入到 Markdown 編輯器
+        insertImage({
+          url: imageUrl,
+          desc: "DESC",
+        });
+      } catch (error) {
+        console.error("Image upload failed:", error);
+      }
     },
   },
 };
