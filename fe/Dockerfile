@@ -6,6 +6,8 @@ COPY package*.json ./
 
 RUN npm install
 
+RUN npm install @kangc/v-md-editor@next
+
 COPY . .
 
 EXPOSE 7070

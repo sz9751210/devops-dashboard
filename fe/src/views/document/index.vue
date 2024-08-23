@@ -132,6 +132,10 @@
             ></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="內容">
+          <!-- Markdown 編輯器 -->
+          <v-md-editor v-model="newDocument.content"/>
+        </el-form-item>
       </el-form>
       <el-button type="primary" @click="saveDocument">確定</el-button>
     </el-dialog>
@@ -139,6 +143,11 @@
 </template>
 
 <script>
+import VMdEditor from "@kangc/v-md-editor";
+import "@kangc/v-md-editor/lib/style/base-editor.css";
+import vuepressTheme from "@kangc/v-md-editor/lib/theme/vuepress.js";
+import "@kangc/v-md-editor/lib/theme/style/vuepress.css";
+import Prism from "prismjs";
 import {
   fetchDocuments,
   fetchDocumentDetail,
@@ -151,7 +160,15 @@ import {
   deleteFolder,
 } from "@/api/document";
 
+// 配置 Markdown 編輯器
+VMdEditor.use(vuepressTheme, {
+  Prism,
+});
+
 export default {
+  components: {
+    VMdEditor,
+  },
   data() {
     return {
       directoryTree: [], // 目錄樹的結構數據
@@ -166,6 +183,7 @@ export default {
         author: "",
         date: "",
         folderId: null, // 文件所在的目錄 ID
+        content: "",
         originalFolderId: null, // 用於追踪原始文件所在的目錄 ID
       },
       showAddFolderDialog: false,
@@ -238,34 +256,6 @@ export default {
       this.selectedParentFolderId = this.currentFolder
         ? this.currentFolder._id
         : null;
-    },
-    async fetchFolders() {
-      try {
-        const response = await fetchFolders();
-        const flatFolders = response.data;
-
-        // 將目錄列表轉換為樹狀結構
-        const folderMap = {};
-        flatFolders.forEach((folder) => {
-          folder.children = [];
-          folderMap[folder._id] = folder;
-        });
-
-        const treeData = [];
-        flatFolders.forEach((folder) => {
-          if (folder.parentId) {
-            if (folderMap[folder.parentId]) {
-              folderMap[folder.parentId].children.push(folder);
-            }
-          } else {
-            treeData.push(folder);
-          }
-        });
-
-        this.directoryTree = treeData;
-      } catch (error) {
-        console.error("Error fetching folders:", error);
-      }
     },
     async createFolder() {
       try {
@@ -354,6 +344,7 @@ export default {
     },
     async saveDocument() {
       try {
+        console.log("Saving document:", this.newDocument);
         if (this.isEditing) {
           await updateDocument(this.newDocument._id, this.newDocument);
         } else {
