@@ -105,7 +105,7 @@
 
     <!-- 新增目錄對話框 -->
     <el-dialog title="新增目錄" v-model="showAddFolderDialog">
-      <el-form>
+      <el-form label-width="80px">
         <el-form-item label="父目錄">
           <el-select v-model="selectedParentFolderId" placeholder="選擇父目錄">
             <el-option :label="'無父目錄'" :value="null"></el-option>
@@ -141,12 +141,12 @@
       :title="isEditing ? '編輯文件' : '新增文件'"
       v-model="showAddDocumentDialog"
     >
-      <el-form :model="newDocument">
+      <el-form :model="newDocument" label-width="80px">
         <el-form-item label="文件名">
           <el-input v-model="newDocument.title" />
         </el-form-item>
         <el-form-item label="作者">
-          <el-select v-model="newDocument.author" placeholder="Select author">
+          <el-select v-model="newDocument.author" placeholder="請選擇">
             <el-option
               v-for="author in authors"
               :key="author"
