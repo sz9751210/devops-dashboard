@@ -4,16 +4,39 @@
     <div class="sidebar">
       <!-- 操作按鈕區域 -->
       <div class="button-group">
-        <el-button type="primary" icon="plus" @click="openAddFolderDialog"
-          >新增目錄</el-button
-        >
-        <el-button
-          type="warning"
-          icon="edit"
-          @click="toggleEditMode"
-          :disabled="!currentFolder"
-          >{{ editMode ? "完成編輯" : "編輯目錄" }}</el-button
-        >
+        <div class="button-row">
+          <el-button type="primary" icon="plus" @click="openAddFolderDialog"
+            >新增目錄</el-button
+          >
+
+          <el-button
+            type="warning"
+            icon="edit"
+            @click="toggleEditMode"
+            :disabled="!currentFolder"
+            >{{ editMode ? "完成編輯" : "編輯目錄" }}</el-button
+          >
+
+          <!-- 如果在編輯模式下，顯示重命名和刪除按鈕 -->
+          <!-- <span>編輯模式開啟</span> -->
+        </div>
+
+        <div v-if="editMode" class="button-row">
+          <el-button
+            type="primary"
+            v-if="editMode"
+            @click="openRenameFolderDialog"
+            :disabled="!currentFolder"
+            >重命名目錄</el-button
+          >
+          <el-button
+            type="danger"
+            v-if="editMode"
+            @click="deleteCurrentFolder"
+            :disabled="!currentFolder"
+            >刪除目錄</el-button
+          >
+        </div>
       </div>
 
       <!-- 分隔線 -->
@@ -26,22 +49,6 @@
         @node-click="handleNodeClick"
         class="directory-tree"
       ></el-tree>
-
-      <!-- 如果在編輯模式下，顯示重命名和刪除按鈕 -->
-      <div v-if="editMode" class="edit-actions">
-        <el-button
-          type="primary"
-          @click="openRenameFolderDialog"
-          :disabled="!currentFolder"
-          >重命名目錄</el-button
-        >
-        <el-button
-          type="danger"
-          @click="deleteCurrentFolder"
-          :disabled="!currentFolder"
-          >刪除目錄</el-button
-        >
-      </div>
     </div>
 
     <!-- 分隔線 -->
@@ -340,6 +347,7 @@ export default {
     },
     toggleEditMode() {
       this.editMode = !this.editMode;
+      console.log("Edit mode toggled:", this.editMode);
     },
     openAddFolderDialog() {
       this.showAddFolderDialog = true;
@@ -561,12 +569,6 @@ export default {
   flex-direction: column;
 }
 
-.button-group {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
 .divider {
   height: 2px;
   background-color: #dcdfe6;
@@ -584,11 +586,20 @@ export default {
   flex-grow: 1;
   overflow-y: auto;
 }
-
-.edit-actions {
-  margin-top: 10px;
+.button-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* 按鈕水平排列並均勻分布 */
+}
+
+.button-row .el-button {
+  flex: 1;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column; /* 確保按鈕區域也是垂直排列 */
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .content {
