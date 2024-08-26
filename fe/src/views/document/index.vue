@@ -146,13 +146,21 @@
           <el-input v-model="newDocument.title" />
         </el-form-item>
         <el-form-item label="作者">
-          <el-input v-model="newDocument.author" />
+          <el-select v-model="newDocument.author" placeholder="Select author">
+            <el-option
+              v-for="author in authors"
+              :key="author"
+              :label="author"
+              :value="author"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="日期">
           <el-date-picker
             v-model="newDocument.date"
             type="date"
             placeholder="選擇日期"
+            value-format="YYYY-MM-DD"
           />
         </el-form-item>
         <el-form-item label="目錄">
@@ -251,6 +259,7 @@ export default {
       renameFolderName: "",
       folderToRename: null,
       selectedParentFolderId: null, // 選擇的父目錄 ID
+      authors: ["Author1", "Author2", "Author3"],
       newDocument: {
         title: "",
         author: "",
@@ -427,10 +436,12 @@ export default {
     async saveDocument() {
       try {
         console.log("Saving document:", this.newDocument);
+        const documentData = { ...this.newDocument };
+        documentData.date = documentData.date.split("T")[0]; // 只保留日期部分
         if (this.isEditing) {
-          await updateDocument(this.newDocument._id, this.newDocument);
+          await updateDocument(this.newDocument._id, documentData);
         } else {
-          await createDocument(this.newDocument);
+          await createDocument(documentData);
         }
         this.handleNodeClick(this.currentFolder);
         this.showAddDocumentDialog = false;
