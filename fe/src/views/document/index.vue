@@ -53,6 +53,12 @@
         <el-button type="primary" icon="plus" @click="openAddDocumentDialog"
           >新增文件</el-button
         >
+        <el-switch
+          v-model="showOperations"
+          active-text="God Mode"
+          inactive-text="Read Only"
+          class="mode-switch"
+        />
       </div>
 
       <el-table :data="currentFiles" style="width: 100%">
@@ -61,9 +67,36 @@
         <el-table-column prop="date" label="日期" />
         <el-table-column label="操作">
           <template v-slot="scope">
-            <el-button @click="editDocument(scope.row)">編輯</el-button>
-            <el-button type="danger" @click="deleteDocument(scope.row)"
-              >刪除</el-button
+            <el-button
+              class="action-button"
+              size="small"
+              type="primary"
+              v-if="showOperations"
+              @click="editDocument(scope.row)"
+              >編輯</el-button
+            >
+            <el-popconfirm
+              title="delete this event?"
+              @confirm="confirmDelete(scope.row._id)"
+              @cancel="cancelDelete"
+            >
+              <template #reference>
+                <el-button
+                  class="action-button"
+                  size="small"
+                  type="danger"
+                  v-if="showOperations"
+                  @click="deleteDocument(scope.row)"
+                  >刪除</el-button
+                >
+              </template>
+            </el-popconfirm>
+            <el-button
+              class="action-button"
+              size="small"
+              @click="previewDocument(scope.row)"
+              type="primary"
+              >Detail</el-button
             >
           </template>
         </el-table-column>
@@ -143,6 +176,27 @@
       </el-form>
       <el-button type="primary" @click="saveDocument">確定</el-button>
     </el-dialog>
+
+    <!-- 文檔預覽對話框 -->
+    <el-dialog title="文檔預覽" v-model="showPreviewDialog" width="80%">
+      <el-form label-position="left" label-width="100px">
+        <el-form-item label="文件名">
+          <span>{{ previewDocumentData.title }}</span>
+        </el-form-item>
+        <el-form-item label="作者">
+          <span>{{ previewDocumentData.author }}</span>
+        </el-form-item>
+        <el-form-item label="日期">
+          <span>{{ previewDocumentData.date }}</span>
+        </el-form-item>
+        <el-form-item label="目錄">
+          <span>{{ previewDocumentData.folderName }}</span>
+        </el-form-item>
+        <el-form-item label="內容">
+          <v-md-preview :text="previewDocumentData.content"></v-md-preview>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
@@ -151,7 +205,12 @@ import VMdEditor from "@kangc/v-md-editor";
 import "@kangc/v-md-editor/lib/style/base-editor.css";
 import vuepressTheme from "@kangc/v-md-editor/lib/theme/vuepress.js";
 import "@kangc/v-md-editor/lib/theme/style/vuepress.css";
-import zhTW from '@kangc/v-md-editor/lib/lang/zh-TW';
+import zhTW from "@kangc/v-md-editor/lib/lang/zh-TW";
+import VMdPreview from "@kangc/v-md-editor/lib/preview";
+import "@kangc/v-md-editor/lib/style/preview.css";
+import githubTheme from "@kangc/v-md-editor/lib/theme/github.js";
+import "@kangc/v-md-editor/lib/theme/style/github.css";
+import hljs from "highlight.js";
 import Prism from "prismjs";
 import {
   fetchDocuments,
@@ -171,11 +230,17 @@ VMdEditor.use(vuepressTheme, {
   Prism,
 });
 
-VMdEditor.lang.use('zh-TW', zhTW);
+VMdPreview.use(githubTheme, {
+  Hljs: hljs,
+});
+
+VMdEditor.lang.use("zh-TW", zhTW);
+// VMdPreview.lang.use("zh-TW", zhTW);
 
 export default {
   components: {
     VMdEditor,
+    VMdPreview,
   },
   data() {
     return {
@@ -204,6 +269,15 @@ export default {
         children: "children",
         label: "label",
       },
+      showPreviewDialog: false,
+      previewDocumentData: {
+        title: "",
+        author: "",
+        date: "",
+        folderName: "",
+        content: "",
+      },
+      showOperations: false,
     };
   },
   created() {
@@ -440,6 +514,25 @@ export default {
         console.error("Image upload failed:", error);
       }
     },
+    async previewDocument(document) {
+      try {
+        const response = await fetchDocumentDetail(document._id);
+        this.previewDocumentData.title = response.data.title;
+        this.previewDocumentData.author = response.data.author;
+        this.previewDocumentData.date = response.data.date;
+        this.previewDocumentData.content = response.data.content;
+
+        // 获取文件所在目录的名称
+        const folder = this.findFolderById(response.data.folderId);
+        this.previewDocumentData.folderName = folder
+          ? folder.label
+          : "未知目錄";
+
+        this.showPreviewDialog = true;
+      } catch (error) {
+        console.error("Error fetching document details:", error);
+      }
+    },
   },
 };
 </script>
@@ -495,5 +588,8 @@ export default {
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
+}
+.action-button {
+  margin-right: 1px;
 }
 </style>
