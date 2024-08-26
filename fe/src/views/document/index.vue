@@ -17,7 +17,7 @@
             icon="edit"
             @click="toggleEditMode"
             :disabled="!currentFolder"
-            v-if="showOperations"
+            v-if="directoryTree.length > 0 && currentFolder && showOperations"
             >{{ editMode ? "完成編輯" : "編輯目錄" }}</el-button
           >
 
@@ -25,17 +25,15 @@
           <!-- <span>編輯模式開啟</span> -->
         </div>
 
-        <div v-if="editMode && showOperations" class="button-row">
+        <div v-if="editMode && showOperations && currentFolder && directoryTree.length > 0" class="button-row">
           <el-button
             type="primary"
-            v-if="editMode"
             @click="openRenameFolderDialog"
             :disabled="!currentFolder"
             >重命名目錄</el-button
           >
           <el-button
             type="danger"
-            v-if="editMode"
             @click="deleteCurrentFolder"
             :disabled="!currentFolder"
             >刪除目錄</el-button
