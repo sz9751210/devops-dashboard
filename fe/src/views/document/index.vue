@@ -1,62 +1,17 @@
 <template>
   <div class="document-page">
     <!-- 左側目錄區域 -->
-    <div class="sidebar">
-      <!-- 操作按鈕區域 -->
-      <div class="button-group">
-        <div class="button-row">
-          <el-button type="primary" icon="plus" @click="openAddFolderDialog"
-            >新增目錄</el-button
-          >
-
-          <el-button
-            type="warning"
-            icon="edit"
-            @click="toggleEditMode"
-            :disabled="!currentFolder"
-            v-if="directoryTree.length > 0 && currentFolder && showOperations"
-            >{{ editMode ? "完成編輯" : "編輯目錄" }}</el-button
-          >
-
-          <!-- 如果在編輯模式下，顯示重命名和刪除按鈕 -->
-          <!-- <span>編輯模式開啟</span> -->
-        </div>
-
-        <div
-          v-if="
-            editMode &&
-            showOperations &&
-            currentFolder &&
-            directoryTree.length > 0
-          "
-          class="button-row"
-        >
-          <el-button
-            type="primary"
-            @click="openRenameFolderDialog"
-            :disabled="!currentFolder"
-            >重命名目錄</el-button
-          >
-          <el-button
-            type="danger"
-            @click="deleteCurrentFolder"
-            :disabled="!currentFolder"
-            >刪除目錄</el-button
-          >
-        </div>
-      </div>
-
-      <!-- 分隔線 -->
-      <div class="divider"></div>
-
-      <!-- 目錄列表 -->
-      <el-tree
-        :data="directoryTree"
-        :props="defaultProps"
-        @node-click="handleNodeClick"
-        class="directory-tree"
-      ></el-tree>
-    </div>
+    <Sidebar
+      :directoryTree="directoryTree"
+      :currentFolder="currentFolder"
+      :editMode="editMode"
+      :showOperations="showOperations"
+      @open-add-folder-dialog="openAddFolderDialog"
+      @toggle-edit-mode="toggleEditMode"
+      @open-rename-folder-dialog="openRenameFolderDialog"
+      @delete-current-folder="deleteCurrentFolder"
+      @node-click="handleNodeClick"
+    />
 
     <!-- 分隔線 -->
     <div class="vertical-divider"></div>
@@ -75,46 +30,14 @@
         />
       </div>
 
-      <el-table :data="currentFiles" style="width: 100%">
-        <el-table-column prop="title" label="文件名" />
-        <el-table-column prop="author" label="作者" />
-        <el-table-column prop="date" label="日期" />
-        <el-table-column label="操作">
-          <template v-slot="scope">
-            <el-button
-              class="action-button"
-              size="small"
-              type="primary"
-              v-if="showOperations"
-              @click="editDocument(scope.row)"
-              >編輯</el-button
-            >
-            <el-popconfirm
-              title="delete this event?"
-              @confirm="confirmDelete(scope.row._id)"
-              @cancel="cancelDelete"
-            >
-              <template #reference>
-                <el-button
-                  class="action-button"
-                  size="small"
-                  type="danger"
-                  v-if="showOperations"
-                  @click="deleteDocument(scope.row)"
-                  >刪除</el-button
-                >
-              </template>
-            </el-popconfirm>
-            <el-button
-              class="action-button"
-              size="small"
-              @click="previewDocument(scope.row)"
-              type="primary"
-              >Detail</el-button
-            >
-          </template>
-        </el-table-column>
-      </el-table>
+      <DocumentTable
+        :currentFiles="currentFiles"
+        :showOperations="showOperations"
+        @edit-document="editDocument"
+        @preview-document="previewDocument"
+        @confirm-delete="deleteDocument"
+        @cancel-delete="cancelDelete"
+      />
     </div>
 
     <!-- 新增目錄對話框 -->
@@ -227,6 +150,8 @@
 </template>
 
 <script>
+import Sidebar from "@/components/document/Sidebar.vue";
+import DocumentTable from "@/components/document/DocumentTable.vue";
 import { ElMessageBox } from "element-plus";
 import VMdEditor from "@kangc/v-md-editor";
 import "@kangc/v-md-editor/lib/style/base-editor.css";
@@ -266,6 +191,8 @@ VMdEditor.lang.use("zh-TW", zhTW);
 
 export default {
   components: {
+    Sidebar,
+    DocumentTable,
     VMdEditor,
     VMdPreview,
   },
@@ -487,15 +414,18 @@ export default {
         console.error("Error saving document:", error);
       }
     },
-    async deleteDocument(document) {
+    async deleteDocument(documentId) {
       try {
-        await deleteDocument(document._id);
+        await deleteDocument(documentId);
         this.currentFiles = this.currentFiles.filter(
-          (file) => file._id !== document._id
+          (file) => file._id !== documentId
         );
       } catch (error) {
         console.error("Error deleting document:", error);
       }
+    },
+    cancelDelete() {
+      done();
     },
     findFolderById(id) {
       const findInTree = (nodes) => {
