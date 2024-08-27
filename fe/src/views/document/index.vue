@@ -5,10 +5,7 @@
       <!-- 操作按鈕區域 -->
       <div class="button-group">
         <div class="button-row">
-          <el-button
-            type="primary"
-            icon="plus"
-            @click="openAddFolderDialog"
+          <el-button type="primary" icon="plus" @click="openAddFolderDialog"
             >新增目錄</el-button
           >
 
@@ -25,7 +22,15 @@
           <!-- <span>編輯模式開啟</span> -->
         </div>
 
-        <div v-if="editMode && showOperations && currentFolder && directoryTree.length > 0" class="button-row">
+        <div
+          v-if="
+            editMode &&
+            showOperations &&
+            currentFolder &&
+            directoryTree.length > 0
+          "
+          class="button-row"
+        >
           <el-button
             type="primary"
             @click="openRenameFolderDialog"
@@ -113,7 +118,11 @@
     </div>
 
     <!-- 新增目錄對話框 -->
-    <el-dialog title="新增目錄" v-model="showAddFolderDialog">
+    <el-dialog
+      title="新增目錄"
+      v-model="showAddFolderDialog"
+      :before-close="beforeClose"
+    >
       <el-form label-width="80px">
         <el-form-item label="父目錄">
           <el-select v-model="selectedParentFolderId" placeholder="選擇父目錄">
@@ -218,6 +227,7 @@
 </template>
 
 <script>
+import { ElMessageBox } from "element-plus";
 import VMdEditor from "@kangc/v-md-editor";
 import "@kangc/v-md-editor/lib/style/base-editor.css";
 import vuepressTheme from "@kangc/v-md-editor/lib/theme/vuepress.js";
@@ -360,6 +370,12 @@ export default {
     },
     async createFolder() {
       try {
+        // 顯示確認提示框
+        await ElMessageBox.confirm("是否確定要新增這個目錄？", "確認", {
+          confirmButtonText: "確定",
+          cancelButtonText: "取消",
+          type: "warning",
+        });
         const newFolder = {
           label: this.newFolderName,
           parentId: this.selectedParentFolderId || null, // 使用選擇的父目錄 ID
@@ -381,11 +397,17 @@ export default {
           }
         }
 
+        // 重置對話框數據
         this.showAddFolderDialog = false;
         this.newFolderName = "";
         this.selectedParentFolderId = null;
       } catch (error) {
-        console.error("Error creating folder:", error);
+        if (error === "cancel") {
+          // 如果用戶取消操作，則不進行任何操作
+          console.log("新增目錄操作已取消");
+        } else {
+          console.error("Error creating folder:", error);
+        }
       }
     },
     openRenameFolderDialog() {
@@ -445,6 +467,12 @@ export default {
     },
     async saveDocument() {
       try {
+        // 顯示確認提示框
+        await ElMessageBox.confirm("是否確定要新增這份文件？", "確認", {
+          confirmButtonText: "確定",
+          cancelButtonText: "取消",
+          type: "warning",
+        });
         console.log("Saving document:", this.newDocument);
         const documentData = { ...this.newDocument };
         documentData.date = documentData.date.split("T")[0]; // 只保留日期部分
@@ -553,6 +581,19 @@ export default {
       } catch (error) {
         console.error("Error fetching document details:", error);
       }
+    },
+    beforeClose(done) {
+      ElMessageBox.confirm("您有未保存的更改。是否確定要退出？", "確認", {
+        confirmButtonText: "確定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          done();
+        })
+        .catch(() => {
+          // 如果用戶取消，則什麼都不做
+        });
     },
   },
 };
