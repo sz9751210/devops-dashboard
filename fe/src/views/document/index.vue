@@ -41,117 +41,47 @@
     </div>
 
     <!-- 新增目錄對話框 -->
-    <el-dialog
-      title="新增目錄"
-      v-model="showAddFolderDialog"
-      :before-close="beforeClose"
-    >
-      <el-form label-width="80px">
-        <el-form-item label="父目錄">
-          <el-select v-model="selectedParentFolderId" placeholder="選擇父目錄">
-            <el-option :label="'無父目錄'" :value="null"></el-option>
-            <el-option
-              v-for="folder in getAllFolders(directoryTree)"
-              :key="folder._id"
-              :label="folder.label"
-              :value="folder._id"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="目錄名稱">
-          <el-input
-            v-model="newFolderName"
-            placeholder="輸入目錄名稱"
-          ></el-input>
-        </el-form-item>
-      </el-form>
-      <el-button type="primary" @click="createFolder">確定</el-button>
-    </el-dialog>
+    <AddFolderDialog
+      :directoryTree="directoryTree"
+      v-model:isVisible="showAddFolderDialog"
+      v-model:folderName="newFolderName"
+      v-model:selectedParentFolderId="selectedParentFolderId"
+      @save-folder="createFolder"
+      @before-close="beforeClose"
+    />
 
-    <!-- 重命名目錄對話框 -->
-    <el-dialog title="重命名目錄" v-model="showRenameFolderDialog">
-      <el-input
-        v-model="renameFolderName"
-        placeholder="輸入新的目錄名稱"
-      ></el-input>
-      <el-button type="primary" @click="renameFolder">確定</el-button>
-    </el-dialog>
+    <RenameFolderDialog
+      v-model:showRenameFolderDialog="showRenameFolderDialog"
+      v-model:renameFolderName="renameFolderName"
+      @rename-folder="renameFolder"
+    />
 
-    <!-- 新增/編輯文件對話框 -->
-    <el-dialog
-      :title="isEditing ? '編輯文件' : '新增文件'"
-      v-model="showAddDocumentDialog"
-    >
-      <el-form :model="newDocument" label-width="80px">
-        <el-form-item label="文件名">
-          <el-input v-model="newDocument.title" />
-        </el-form-item>
-        <el-form-item label="作者">
-          <el-select v-model="newDocument.author" placeholder="請選擇">
-            <el-option
-              v-for="author in authors"
-              :key="author"
-              :label="author"
-              :value="author"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="日期">
-          <el-date-picker
-            v-model="newDocument.date"
-            type="date"
-            placeholder="選擇日期"
-            value-format="YYYY-MM-DD"
-          />
-        </el-form-item>
-        <el-form-item label="目錄">
-          <el-select v-model="newDocument.folderId" placeholder="選擇目錄">
-            <el-option
-              v-for="folder in getLeafFolders(directoryTree)"
-              :key="folder._id"
-              :label="folder.label"
-              :value="folder._id"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="內容">
-          <!-- Markdown 編輯器 -->
-          <v-md-editor
-            v-model="newDocument.content"
-            :disabled-menus="[]"
-            @upload-image="handleUploadImage"
-          />
-        </el-form-item>
-      </el-form>
-      <el-button type="primary" @click="saveDocument">確定</el-button>
-    </el-dialog>
+    <DocumentDialog
+      v-model:isVisible="showAddDocumentDialog"
+      :document="newDocument"
+      :isEditing="isEditing"
+      :authors="authors"
+      :directoryTree="directoryTree"
+      @save-document="saveDocument"
+      @upload-image="handleUploadImage"
+    />
+
+    <DocumentPreviewDialog
+      v-model:isVisible="showPreviewDialog"
+      :previewDocumentData="previewDocumentData"
+    />
 
     <!-- 文檔預覽對話框 -->
-    <el-dialog title="文檔預覽" v-model="showPreviewDialog" width="80%">
-      <el-form label-position="left" label-width="100px">
-        <el-form-item label="文件名">
-          <span>{{ previewDocumentData.title }}</span>
-        </el-form-item>
-        <el-form-item label="作者">
-          <span>{{ previewDocumentData.author }}</span>
-        </el-form-item>
-        <el-form-item label="日期">
-          <span>{{ previewDocumentData.date }}</span>
-        </el-form-item>
-        <el-form-item label="目錄">
-          <span>{{ previewDocumentData.folderName }}</span>
-        </el-form-item>
-        <el-form-item label="內容">
-          <v-md-preview :text="previewDocumentData.content"></v-md-preview>
-        </el-form-item>
-      </el-form>
-    </el-dialog>
   </div>
 </template>
 
 <script>
 import Sidebar from "@/components/document/Sidebar.vue";
 import DocumentTable from "@/components/document/DocumentTable.vue";
+import AddFolderDialog from "@/components/document/AddFolderDialog.vue";
+import RenameFolderDialog from "@/components/document/RenameFolderDialog.vue";
+import DocumentDialog from "@/components/document/DocumentDialog.vue";
+import DocumentPreviewDialog from "@/components/document/DocumentPreviewDialog.vue";
 import { ElMessageBox } from "element-plus";
 import VMdEditor from "@kangc/v-md-editor";
 import "@kangc/v-md-editor/lib/style/base-editor.css";
@@ -193,6 +123,10 @@ export default {
   components: {
     Sidebar,
     DocumentTable,
+    AddFolderDialog,
+    RenameFolderDialog,
+    DocumentDialog,
+    DocumentPreviewDialog,
     VMdEditor,
     VMdPreview,
   },
@@ -295,6 +229,12 @@ export default {
         ? this.currentFolder._id
         : null;
     },
+    handleCreateFolder({ newFolderName, selectedParentFolderId }) {
+      // 將創建文件夾的邏輯放在這裡
+      this.newFolderName = newFolderName;
+      this.selectedParentFolderId = selectedParentFolderId;
+      this.createFolder(); // 可以將原來的方法搬過來使用
+    },
     async createFolder() {
       try {
         // 顯示確認提示框
@@ -357,9 +297,7 @@ export default {
     async deleteCurrentFolder() {
       try {
         await deleteFolder(this.currentFolder._id);
-        this.directoryTree = this.directoryTree.filter(
-          (folder) => folder._id !== this.currentFolder._id
-        );
+        await this.fetchFolders();
         this.currentFolder = null;
       } catch (error) {
         console.error("Error deleting folder:", error);
@@ -439,17 +377,6 @@ export default {
         return null;
       };
       return findInTree(this.directoryTree);
-    },
-    getLeafFolders(nodes) {
-      let result = [];
-      for (let node of nodes) {
-        if (!node.children || node.children.length === 0) {
-          result.push({ _id: node._id, label: node.label });
-        } else {
-          result = result.concat(this.getLeafFolders(node.children));
-        }
-      }
-      return result;
     },
     // 獲取所有目錄（包括子目錄）
     getAllFolders(nodes) {
