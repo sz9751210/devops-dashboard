@@ -45,8 +45,8 @@
     </div>
 
     <!-- 分隔線 -->
-    <div class="divider"></div>
-
+    <!-- <div class="divider"></div> -->
+    <el-divider />
     <!-- 目錄列表 -->
     <el-tree
       :data="directoryTree"
