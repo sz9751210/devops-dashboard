@@ -3,9 +3,9 @@
     <!-- 操作按鈕區域 -->
     <div class="button-group">
       <div class="button-row">
-        <el-button type="primary" icon="plus" @click="openAddFolderDialog"
-          >新增目錄</el-button
-        >
+        <el-button type="primary" icon="plus" @click="openAddFolderDialog">
+          新增目錄
+        </el-button>
 
         <el-button
           type="warning"
@@ -13,11 +13,9 @@
           @click="toggleEditMode"
           :disabled="!currentFolder"
           v-if="directoryTree.length > 0 && currentFolder && showOperations"
-          >{{ editMode ? "完成編輯" : "編輯目錄" }}</el-button
         >
-
-        <!-- 如果在編輯模式下，顯示重命名和刪除按鈕 -->
-        <!-- <span>編輯模式開啟</span> -->
+          {{ editMode ? "完成編輯" : "編輯目錄" }}
+        </el-button>
       </div>
 
       <div
@@ -33,20 +31,29 @@
           type="primary"
           @click="openRenameFolderDialog"
           :disabled="!currentFolder"
-          >重命名目錄</el-button
         >
-        <el-button
-          type="danger"
-          @click="deleteCurrentFolder"
-          :disabled="!currentFolder"
-          >刪除目錄</el-button
+          重命名目錄
+        </el-button>
+
+        <!-- 使用 Popconfirm 包裹刪除按鈕 -->
+        <el-popconfirm
+          title="確定要刪除該目錄嗎？"
+          confirm-button-text="確定"
+          cancel-button-text="取消"
+          @confirm="deleteCurrentFolder"
         >
+          <template #reference>
+            <el-button type="danger" :disabled="!currentFolder">
+              刪除目錄
+            </el-button>
+          </template>
+        </el-popconfirm>
       </div>
     </div>
 
     <!-- 分隔線 -->
-    <!-- <div class="divider"></div> -->
     <el-divider />
+
     <!-- 目錄列表 -->
     <el-tree
       :data="directoryTree"
