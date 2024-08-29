@@ -309,15 +309,20 @@ export default {
     },
     async saveDocument() {
       try {
-        // 顯示確認提示框
-        await ElMessageBox.confirm("是否確定要新增這份文件？", "確認", {
+        // 根據 isEditing 狀態來設置提示訊息
+        const actionMessage = this.isEditing
+          ? "是否確定要儲存這份文件的變更？"
+          : "是否確定要新增這份文件？";
+        await ElMessageBox.confirm(actionMessage, "確認", {
           confirmButtonText: "確定",
           cancelButtonText: "取消",
           type: "warning",
         });
+
         console.log("Saving document:", this.newDocument);
         const documentData = { ...this.newDocument };
         documentData.date = documentData.date.split("T")[0]; // 只保留日期部分
+
         if (this.isEditing) {
           await updateDocument(this.newDocument._id, documentData);
         } else {
@@ -329,6 +334,7 @@ export default {
         console.error("Error saving document:", error);
       }
     },
+
     async deleteDocument(documentId) {
       try {
         await deleteDocument(documentId);
