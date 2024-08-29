@@ -3,6 +3,7 @@
     title="重命名目錄"
     :model-value="showRenameFolderDialog"
     @update:model-value="updateShowRenameFolderDialog"
+    :before-close="beforeClose"
   >
     <el-input
       class="input"
@@ -31,6 +32,9 @@ export default {
     },
     updateRenameFolderName(val) {
       this.$emit("update:renameFolderName", val);
+    },
+    beforeClose(done) {
+      this.$emit("before-close", done);
     },
   },
 };

@@ -54,6 +54,7 @@
       v-model:showRenameFolderDialog="showRenameFolderDialog"
       v-model:renameFolderName="renameFolderName"
       @rename-folder="renameFolder"
+      @before-close="beforeClose"
     />
 
     <DocumentDialog
@@ -64,6 +65,7 @@
       :directoryTree="directoryTree"
       @save-document="saveDocument"
       @upload-image="handleUploadImage"
+      @before-close="beforeClose"
     />
 
     <DocumentPreviewDialog
@@ -83,17 +85,7 @@ import RenameFolderDialog from "@/components/document/RenameFolderDialog.vue";
 import DocumentDialog from "@/components/document/DocumentDialog.vue";
 import DocumentPreviewDialog from "@/components/document/DocumentPreviewDialog.vue";
 import { ElMessageBox } from "element-plus";
-import VMdEditor from "@kangc/v-md-editor";
-import "@kangc/v-md-editor/lib/style/base-editor.css";
-import vuepressTheme from "@kangc/v-md-editor/lib/theme/vuepress.js";
-import "@kangc/v-md-editor/lib/theme/style/vuepress.css";
-import zhTW from "@kangc/v-md-editor/lib/lang/zh-TW";
-import VMdPreview from "@kangc/v-md-editor/lib/preview";
-import "@kangc/v-md-editor/lib/style/preview.css";
-import githubTheme from "@kangc/v-md-editor/lib/theme/github.js";
-import "@kangc/v-md-editor/lib/theme/style/github.css";
-import hljs from "highlight.js";
-import Prism from "prismjs";
+
 import {
   fetchDocuments,
   fetchDocumentDetail,
@@ -107,18 +99,6 @@ import {
   uploadImage,
 } from "@/api/document";
 
-// 配置 Markdown 編輯器
-VMdEditor.use(vuepressTheme, {
-  Prism,
-});
-
-VMdPreview.use(githubTheme, {
-  Hljs: hljs,
-});
-
-VMdEditor.lang.use("zh-TW", zhTW);
-// VMdPreview.lang.use("zh-TW", zhTW);
-
 export default {
   components: {
     Sidebar,
@@ -127,8 +107,6 @@ export default {
     RenameFolderDialog,
     DocumentDialog,
     DocumentPreviewDialog,
-    VMdEditor,
-    VMdPreview,
   },
   data() {
     return {

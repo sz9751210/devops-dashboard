@@ -3,6 +3,7 @@
     :title="isEditing ? '編輯文件' : '新增文件'"
     :model-value="isVisible"
     @update:model-value="updateVisibility"
+    :before-close="beforeClose"
   >
     <el-form :model="document" label-width="80px">
       <el-form-item label="文件名">
@@ -51,6 +52,17 @@
 
 <script>
 import VMdEditor from "@kangc/v-md-editor";
+import "@kangc/v-md-editor/lib/style/base-editor.css";
+import vuepressTheme from "@kangc/v-md-editor/lib/theme/vuepress.js";
+import "@kangc/v-md-editor/lib/theme/style/vuepress.css";
+import zhTW from "@kangc/v-md-editor/lib/lang/zh-TW";
+import Prism from "prismjs";
+
+VMdEditor.use(vuepressTheme, {
+  Prism,
+});
+
+VMdEditor.lang.use("zh-TW", zhTW);
 
 export default {
   components: {
@@ -83,6 +95,9 @@ export default {
         }
       }
       return result;
+    },
+    beforeClose(done) {
+      this.$emit("before-close", done);
     },
   },
 };
