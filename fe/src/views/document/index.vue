@@ -36,7 +36,6 @@
         @edit-document="editDocument"
         @preview-document="previewDocument"
         @confirm-delete="deleteDocument"
-        @cancel-delete="cancelDelete"
       />
     </div>
 
@@ -339,9 +338,6 @@ export default {
       } catch (error) {
         console.error("Error deleting document:", error);
       }
-    },
-    cancelDelete() {
-      done();
     },
     findFolderById(id) {
       const findInTree = (nodes) => {

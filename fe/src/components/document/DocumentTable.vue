@@ -16,7 +16,6 @@
         <el-popconfirm
           title="是否刪除這份文件?"
           @confirm="confirmDelete(scope.row._id)"
-          @cancel="cancelDelete"
         >
           <template #reference>
             <el-button
@@ -52,9 +51,6 @@ export default {
     },
     confirmDelete(documentId) {
       this.$emit("confirm-delete", documentId);
-    },
-    cancelDelete() {
-      this.$emit("cancel-delete");
     },
     previewDocument(document) {
       this.$emit("preview-document", document);
