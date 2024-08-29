@@ -28,6 +28,7 @@
         class="button-row"
       >
         <el-button
+          icon="edit-pen"
           type="primary"
           @click="openRenameFolderDialog"
           :disabled="!currentFolder"
@@ -36,18 +37,26 @@
         </el-button>
 
         <!-- 使用 Popconfirm 包裹刪除按鈕 -->
-        <el-popconfirm
-          title="確定要刪除該目錄嗎？"
-          confirm-button-text="確定"
-          cancel-button-text="取消"
-          @confirm="deleteCurrentFolder"
-        >
-          <template #reference>
-            <el-button type="danger" :disabled="!currentFolder">
-              刪除目錄
-            </el-button>
-          </template>
-        </el-popconfirm>
+        <div style="display: flex; align-items: center">
+          <el-popconfirm
+            :title="`確定要刪除目錄「${
+              currentFolder ? currentFolder.label : ''
+            }」嗎？`"
+            confirm-button-text="確定"
+            cancel-button-text="取消"
+            @confirm="deleteCurrentFolder"
+          >
+            <template #reference>
+              <el-button
+                icon="folder-delete"
+                type="danger"
+                :disabled="!currentFolder"
+              >
+                刪除目錄
+              </el-button>
+            </template>
+          </el-popconfirm>
+        </div>
       </div>
     </div>
 
@@ -60,6 +69,7 @@
       :props="defaultProps"
       @node-click="handleNodeClick"
       class="directory-tree"
+      highlight-current
     ></el-tree>
   </div>
 </template>
@@ -119,7 +129,12 @@ export default {
 .button-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 10px; /* 將按鈕組之間的距離設定為 10px */
   margin-bottom: 10px;
+}
+
+.el-button {
+  width: 110px; /* 固定按鈕寬度 */
+  height: 35px; /* 固定按鈕高度 */
 }
 </style>
