@@ -57,10 +57,14 @@ import vuepressTheme from "@kangc/v-md-editor/lib/theme/vuepress.js";
 import "@kangc/v-md-editor/lib/theme/style/vuepress.css";
 import zhTW from "@kangc/v-md-editor/lib/lang/zh-TW";
 import Prism from "prismjs";
+import createLineNumbertPlugin from "@kangc/v-md-editor/lib/plugins/line-number/index";
 
-VMdEditor.use(vuepressTheme, {
-  Prism,
-});
+import createCopyCodePlugin from "@kangc/v-md-editor/lib/plugins/copy-code/index";
+import "@kangc/v-md-editor/lib/plugins/copy-code/copy-code.css";
+
+VMdEditor.use(vuepressTheme, { Prism })
+  .use(createLineNumbertPlugin())
+  .use(createCopyCodePlugin());
 
 VMdEditor.lang.use("zh-TW", zhTW);
 

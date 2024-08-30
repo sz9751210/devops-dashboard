@@ -32,9 +32,15 @@ import githubTheme from "@kangc/v-md-editor/lib/theme/github.js";
 import "@kangc/v-md-editor/lib/theme/style/github.css";
 import hljs from "highlight.js";
 
-VMdPreview.use(githubTheme, {
-  Hljs: hljs,
-});
+import createLineNumbertPlugin from '@kangc/v-md-editor/lib/plugins/line-number/index';
+
+import createCopyCodePlugin from '@kangc/v-md-editor/lib/plugins/copy-code/index';
+import '@kangc/v-md-editor/lib/plugins/copy-code/copy-code.css';
+
+VMdPreview
+  .use(githubTheme, { Hljs: hljs })
+  .use(createLineNumbertPlugin())
+  .use(createCopyCodePlugin());
 
 export default {
   components: {
