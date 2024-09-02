@@ -29,6 +29,7 @@ class DocumentController:
         if not document_data:
             return jsonify({"code": 400, "message": "No input data provided"}), 400
         document_id = self.document_service.create_document(document_data)
+        self.document_service.save_document_history(document_id, document_data)
         return jsonify({"code": 200, "message": "Document created successfully", "data": {"document_id": document_id}})
 
     # 更新文件
@@ -36,6 +37,7 @@ class DocumentController:
         document_data = request.get_json()
         if not document_data:
             return jsonify({"code": 400, "message": "No input data provided"}), 400
+        self.document_service.save_document_history(document_id, document_data)
         self.document_service.update_document(document_id, document_data)
         return jsonify({"code": 200, "message": "Document updated successfully"})
 
@@ -89,3 +91,11 @@ class DocumentController:
             return image
         else:
             return jsonify({"code": 404, "message": "Image not found"}), 404
+
+    def get_document_history(self, document_id):
+        try:
+            history = self.document_service.get_document_history(document_id)
+            return jsonify({"code": 200, "message": "success", "data": history})
+        except Exception as e:
+            logger.error(f"Error fetching document history: {e}")
+            return jsonify({"code": 500, "message": "Error fetching document history"}), 500

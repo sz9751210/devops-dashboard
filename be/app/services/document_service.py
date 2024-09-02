@@ -1,5 +1,7 @@
+from datetime import datetime
 from bson.objectid import ObjectId
 from gridfs import GridFS
+from pymongo import ASCENDING
 from flask import jsonify, send_file
 import io
 import logging
@@ -95,3 +97,38 @@ class DocumentService:
             # 如果發生錯誤，記錄下錯誤信息
             logger.error(f"Error retrieving image: {e}")
             return jsonify({"code": 404, "message": "Image not found"}), 404
+
+    def save_document_history(self, document_id, document_data):
+        history_collection = self.documents_collection.history
+        formatted_edit_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        history_data = {
+            'document_id': ObjectId(document_id),
+            'content': document_data.get('content'),
+            'edit_time': formatted_edit_time,  # 保存編輯時間
+        }
+        history_collection.insert_one(history_data)
+
+        # 檢查相同 title 的紀錄數量
+        title = document_data.get('title')
+        history_count = history_collection.count_documents({'title': title})
+
+        # 如果超過 7 筆，刪除最舊的紀錄
+        if history_count > 7:
+            # 找到最早的紀錄，根據 edit_time 升序排序
+            oldest_record = history_collection.find({'title': title}).sort('edit_time', ASCENDING).limit(1)
+            # 刪除最早的紀錄
+            if oldest_record:
+                history_collection.delete_one({'_id': oldest_record[0]['_id']})
+
+    def get_document_history(self, document_id, limit=7):
+        history_collection = self.documents_collection.history
+        history = list(history_collection.find({'document_id': ObjectId(document_id)}).sort("edit_time", -1).skip(1).limit(limit))
+        logger.debug(f"get history: {history}")
+
+        for record in history:
+            # 將所有的 ObjectId 轉換為字串
+            record['_id'] = str(record['_id'])
+            record['document_id'] = str(record['document_id'])  # 將 document_id 也轉換成字串
+            if 'folderId' in record and isinstance(record['folderId'], ObjectId):
+                record['folderId'] = str(record['folderId'])  # 確保 folderId 也被轉換
+        return history

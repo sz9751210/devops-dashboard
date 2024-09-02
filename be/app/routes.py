@@ -37,6 +37,7 @@ def setup_routes(app, client, scheduler):
     app.add_url_rule(f"{api_prefix}/documents", view_func=document_controller.create_document, methods=['POST'])
     app.add_url_rule(f"{api_prefix}/documents/<document_id>", view_func=document_controller.update_document, methods=['PUT'])
     app.add_url_rule(f"{api_prefix}/documents/<document_id>", view_func=document_controller.delete_document, methods=['DELETE'])
+    app.add_url_rule(f"{api_prefix}/documents/<document_id>/history", view_func=document_controller.get_document_history, methods=['GET'])
     
     # 目錄(Folder)相關的路由
     app.add_url_rule(f"{api_prefix}/folders", view_func=document_controller.get_folders, methods=['GET'])

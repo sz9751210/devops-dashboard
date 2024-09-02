@@ -85,3 +85,10 @@ export function uploadImage(formData) {
     },
   });
 }
+
+export function fetchDocumentHistory(documentId) {
+  return httpClient({
+    url: `${host}/documents/${documentId}/history`,
+    method: "get",
+  });
+}

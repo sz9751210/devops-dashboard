@@ -8,6 +8,8 @@ RUN npm install
 
 RUN npm install @kangc/v-md-editor@next
 
+RUN npm install vue-diff
+
 COPY . .
 
 EXPOSE 7070

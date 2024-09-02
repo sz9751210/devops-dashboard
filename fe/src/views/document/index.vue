@@ -36,8 +36,36 @@
         @edit-document="editDocument"
         @preview-document="previewDocument"
         @confirm-delete="deleteDocument"
+        @fetch-document-history="fetchDocumentHistory"
       />
     </div>
+
+    <!-- 文件歷史對話框 -->
+    <el-dialog v-model="showHistoryDialog" title="文件編輯歷史">
+      <el-table :data="documentHistory" style="width: 100%">
+        <el-table-column prop="edit_time" label="編輯時間" width="250" />
+        <el-table-column label="詳細資料">
+          <template #default="scope">
+            <el-button
+              type="primary"
+              size="small"
+              @click="showDetail(scope.row)"
+            >
+              Detail
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <template #footer>
+        <el-button @click="showHistoryDialog = false">關閉</el-button>
+      </template>
+    </el-dialog>
+
+    <DocumentContentComparisonDialog
+      v-model:isVisible="showComparisonDialog"
+      :currentContent="currentContent"
+      :historyContent="historyContent"
+    />
 
     <!-- 新增目錄對話框 -->
     <AddFolderDialog
@@ -65,6 +93,7 @@
       @save-document="saveDocument"
       @upload-image="handleUploadImage"
       @before-close="beforeClose"
+      @fetch-document-history="fetchDocumentHistory"
     />
 
     <DocumentPreviewDialog
@@ -83,6 +112,7 @@ import AddFolderDialog from "@/components/document/AddFolderDialog.vue";
 import RenameFolderDialog from "@/components/document/RenameFolderDialog.vue";
 import DocumentDialog from "@/components/document/DocumentDialog.vue";
 import DocumentPreviewDialog from "@/components/document/DocumentPreviewDialog.vue";
+import DocumentContentComparisonDialog from "@/components/document/DocumentContentComparisonDialog.vue";
 import { ElMessageBox } from "element-plus";
 
 import {
@@ -96,6 +126,7 @@ import {
   updateFolder,
   deleteFolder,
   uploadImage,
+  fetchDocumentHistory,
 } from "@/api/document";
 
 export default {
@@ -106,9 +137,18 @@ export default {
     RenameFolderDialog,
     DocumentDialog,
     DocumentPreviewDialog,
+    DocumentContentComparisonDialog,
   },
   data() {
     return {
+      showAddDocumentDialog: false, // 用於綁定 v-model:isVisible
+      newDocument: {
+        title: "",
+        author: "",
+        date: "",
+        folderId: null,
+        content: "",
+      }, // 確保初始化時不是 null
       directoryTree: [], // 目錄樹的結構數據
       currentFolder: null, // 當前選中的目錄
       currentFiles: [], // 當前目錄中的文件列表
@@ -144,12 +184,74 @@ export default {
         content: "",
       },
       showOperations: false,
+      showHistoryDialog: false, // 控制歷史對話框的顯示
+      documentHistory: [], // 儲存文件歷史數據
+      showComparisonDialog: false,
+      currentContent: {
+        title: "",
+        author: "",
+        date: "",
+        folderName: "",
+        content: "",
+      },
+      historyContent: {
+        editor: "",
+        edit_time: "",
+        content: "",
+      },
     };
   },
   created() {
     this.fetchFolders();
   },
   methods: {
+    // async fetchDocumentHistory(documentId) {
+    //   try {
+    //     const response = await fetchDocumentHistory(documentId);
+    //     this.documentHistory = response.data;
+    //     console.log("Fetched History Data:", this.documentHistory); // 檢查歷史數據是否正確
+    //     this.showHistoryDialog = true; // 顯示歷史對話框
+    //     console.log("Dialog Visibility:", this.showHistoryDialog); // 檢查對話框狀態
+    //   } catch (error) {
+    //     console.error("Error fetching document history:", error);
+    //   }
+    // },
+
+    async fetchDocumentHistory(documentId) {
+      try {
+        const response = await fetchDocumentHistory(documentId);
+        this.documentHistory = response.data;
+        console.log("Fetched History Data:", this.documentHistory); // 檢查歷史數據是否正確
+        this.showHistoryDialog = true; // 顯示歷史對話框
+      } catch (error) {
+        console.error("Error fetching document history:", error);
+      }
+    },
+    async showDetail(record) {
+      try {
+        // 獲取當前文件的詳細資料
+        const response = await fetchDocumentDetail(record.document_id);
+        this.currentContent = {
+          title: response.data.title,
+          author: response.data.author,
+          date: response.data.date,
+          content: response.data.content,
+          folderName: "未知目錄", // 可以根據需要查找具體文件夾名稱
+        };
+
+        // 設置歷史版本的內容
+        this.historyContent = {
+          editor: record.editor,
+          edit_time: record.edit_time,
+          content: record.content,
+        };
+
+        // 打開比較對話框
+        this.showComparisonDialog = true;
+      } catch (error) {
+        console.error("Error fetching current document detail:", error);
+      }
+    },
     async fetchFolders() {
       try {
         const response = await fetchFolders();
