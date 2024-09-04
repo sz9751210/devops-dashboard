@@ -119,6 +119,21 @@ class CertificateService:
                     domain, subdomains, existing_subdomains, current_date)
                 self.remove_old_subdomains(
                     domain, subdomains, current_domains_dict)
+                
+                for subdomain in existing_subdomains:
+                    cert = self.get_ssl_cert_info(subdomain)
+                    cert_info = self.parse_ssl_cert_info(subdomain, cert)
+                    expiry_date = cert_info.get('validUntil') if cert_info else None
+                    
+                    result = self.collection.update_one(
+                        {"domain": domain, "subdomains.name": subdomain},
+                        {"$set": {
+                            "subdomains.$.expiry_date": expiry_date,
+                            "subdomains.$.update_date": current_date
+                        }}
+                    )
+                    print(f"Updated subdomain {subdomain} in {domain}: {result.modified_count} documents modified")
+        print("done with update_existing_domains")
 
     def convert_domains_to_dict(self, domain_tuples):
         domain_dict = {}
@@ -134,7 +149,7 @@ class CertificateService:
 
         for subdomain in subdomains:
             if subdomain not in existing_subdomains:
-                subdomains_to_add.append(domain, subdomain, current_date)
+                subdomains_to_add.append((domain, subdomain, current_date))
 
         with Pool() as pool:
             pool.starmap(self._process_subdomain, subdomains_to_add)
@@ -195,6 +210,11 @@ class CertificateService:
         # 使用 Pool 進行並發處理
         with Pool() as pool:
             pool.map(check_domain_subdomains, domain_dict.items())
+        message = "所有憑證檢查完成"
+        bot_token = Config.get_telegram_bot_token()
+        chat_id = Config.get_telegram_chat_id()
+        send_telegram_notification(message, bot_token, chat_id)
+        
 
     def check_ssl_expiration(self, domain, subdomain):
         cert = self.get_ssl_cert_info(subdomain)
@@ -202,9 +222,7 @@ class CertificateService:
         expiry_date_str = cert_info.get('validUntil') if cert_info else None
 
         bot_token = Config.get_telegram_bot_token()
-        print("bot token: ", bot_token)
         chat_id = Config.get_telegram_chat_id()
-        print("chat id: ", chat_id)
         if expiry_date_str:
             expiry_date = datetime.strptime(expiry_date_str, "%Y-%m-%d")
             remaining_days = (expiry_date - datetime.utcnow()).days
@@ -219,6 +237,7 @@ class CertificateService:
                 print(f"{subdomain} 的 SSL 證書將在 {remaining_days} 天內過期。")
                 send_telegram_notification(message, bot_token, chat_id)
             else:
+
                 print(
                     f"{subdomain} 的 SSL 證書過期日期是 {expiry_date.strftime('%Y-%m-%d')}。"
                 )
@@ -245,3 +264,9 @@ class CertificateService:
                 })
 
         return filtered_domains
+
+    def update_domain_date(self, domain, current_date):
+        self.collection.update_one(
+            {"domain": domain},
+            {"$set": {"update_date": current_date}}
+        )
